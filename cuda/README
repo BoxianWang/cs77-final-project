@@ -1,1 +1,14 @@
+# CUDA CODE FOR GROUP 7
+### Elliot Potter, Boxian Wang, Eric (Spencer) Warezak
 
+## Compilation Instructions
+
+
+## Execution Instructions
+1. Install eog or some other form of ppm viewing tool on your machine
+2. Compile the program
+3. Execute:
+```
+cuda > out.ppm
+eog out.ppm
+```
