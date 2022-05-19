@@ -48,6 +48,12 @@ class vec3 {
       return e[0]*e[0] + e[1]*e[1] + e[2]*e[2];
     }
 
+    __host__ __device__ bool near_zero() const {
+      // Return true if the vector is close to zero in all dimensions.
+      const auto s = 1e-8;
+      return (fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s);
+    }
+
   public:
     double e[3];
 };
@@ -102,18 +108,15 @@ __host__ __device__ inline vec3 unit_vector(vec3 v) {
   return v / v.length();
 }
 
+__host__ __device__ vec3 reflect(const vec3& v, const vec3& n) {
+  return v - 2*dot(v,n)*n;
+}
+
 #endif //CUDA_VEC3_CUH
 
 #ifndef COLOR_H
 #define COLOR_H
 
 #include <iostream>
-
-void write_color(std::ostream &out, color pixel_color) {
-  // Write the translated [0,255] value of each color component.
-  out << static_cast<int>(255.999 * pixel_color.x()) << ' '
-      << static_cast<int>(255.999 * pixel_color.y()) << ' '
-      << static_cast<int>(255.999 * pixel_color.z()) << '\n';
-}
 
 #endif

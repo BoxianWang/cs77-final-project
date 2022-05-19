@@ -1,18 +1,18 @@
 #define checkCudaErrors(val) check_cuda( (val), #val, __FILE__, __LINE__ )
 
 #include <iostream>
-#include "ray.cuh"
-#include "sphere.cuh"
-#include "hittable.cuh"
-#include "hittable_list.cuh"
+#include "../ray.cuh"
+#include "../sphere.cuh"
+#include "../hittable.cuh"
+#include "../hittable_list.cuh"
 #include <stdexcept>
 #include <limits>
 #include <curand_kernel.h>
-#include "camera.cuh"
-#include "randoms.cuh"
-#include "materials/material.cuh"
-#include "materials/lambertian.cuh"
-#include "materials/metal.cuh"
+#include "../camera.cuh"
+#include "../randoms.cuh"
+#include "../materials/material.cuh"
+#include "../materials/lambertian.cuh"
+#include "../materials/metal.cuh"
 
 const double infinity = std::numeric_limits<double>::infinity();
 

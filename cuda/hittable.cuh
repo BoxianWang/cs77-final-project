@@ -6,10 +6,12 @@
 #define CUDA_HITTABLE_CUH
 
 #include "ray.cuh"
+#include "materials/material.cuh"
 
 struct hit_record {
   point3 p;
   vec3 normal;
+  material* mat_ptr;
   double t;
   bool front_face;
 

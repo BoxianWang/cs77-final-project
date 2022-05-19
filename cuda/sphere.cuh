@@ -7,11 +7,12 @@
 
 #include "hittable.cuh"
 #include "vec3.cuh"
+#include "materials/material.cuh"
 
 class sphere : public hittable {
   public:
     __host__ __device__ sphere() {}
-    __host__ __device__ sphere(point3 cen, double r) : center(cen), radius(r) {};
+    __host__ __device__ sphere(point3 cen, double r, material* mat) : center(cen), radius(r), mat_ptr(mat) {};
 
     __device__ virtual bool hit(
         const ray& r, double t_min, double t_max, hit_record& rec) const override;
@@ -19,6 +20,7 @@ class sphere : public hittable {
   public:
     point3 center;
     double radius;
+    material* mat_ptr;
 };
 
 __device__ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) const {
@@ -42,6 +44,7 @@ __device__ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record
   rec.t = root;
   rec.p = r.at(rec.t);
   rec.normal = (rec.p - center) / radius;
+  rec.mat_ptr = mat_ptr;
   vec3 outward_normal = (rec.p - center) / radius;
   rec.set_face_normal(r, outward_normal);
 
