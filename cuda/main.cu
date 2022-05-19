@@ -2,9 +2,9 @@
 
 #include <iostream>
 #include "ray.cuh"
-#include "sphere.cuh"
-#include "hittable.cuh"
-#include "hittable_list.cuh"
+#include "objects/sphere.cuh"
+#include "objects/hittable.cuh"
+#include "objects/hittable_list.cuh"
 #include <stdexcept>
 #include <limits>
 #include <curand_kernel.h>
@@ -13,6 +13,7 @@
 #include "materials/material.cuh"
 #include "materials/lambertian.cuh"
 #include "materials/metal.cuh"
+#include "materials/dielectric.cuh"
 
 const double infinity = std::numeric_limits<double>::infinity();
 
@@ -34,12 +35,13 @@ __global__ void create_world(hittable **d_list, hittable **d_world) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
     auto material_ground = new lambertian(vec3(0.8, 0.8, 0.0));
     auto material_center = new lambertian(vec3(0.7, 0.3, 0.3));
-    auto material_left   = new metal(vec3(0.8, 0.8, 0.8), 0.3);
+    auto material_left   = new dielectric(1.5);
     auto material_right  = new metal(vec3(0.8, 0.6, 0.2), 1.);
 
     *(d_list) = new sphere(vec3(0,-100.5,-1), 100, material_ground);
     *(d_list+1) = new sphere(vec3(0,0,-1), 0.5, material_center);
     *(d_list+2) = new sphere(vec3(-1,0,-1), 0.5, material_left);
+//    *(d_list+3) = new sphere(vec3(-1,0,-1), -0.4, material_left);
     *(d_list+3) = new sphere(vec3(1,0,-1), 0.5, material_right);
     *d_world    = new hittable_list(d_list,4);
   }
@@ -51,6 +53,7 @@ __global__ void free_world(hittable **d_list, hittable **d_world) {
   delete *(d_list+1);
   delete *(d_list+2);
   delete *(d_list+3);
+//  delete *(d_list+4);
   delete *d_world;
 }
 
@@ -82,18 +85,25 @@ __global__ void render_init(int max_x, int max_y, curandState *rand_state) {
 }
 
 // colors the ray
-__device__ vec3 ray_color(const ray& r, hittable **world, curandState *local_rand_state) {
+__device__ vec3 ray_color(const ray& r, hittable **world, curandState *local_rand_state, int ival, int j, int it) {
   ray cur_ray = r;
   vec3 cur_attenuation = vec3(1,1,1);
   for(int i = 0; i < 50; i++) {
     hit_record rec;
     if ((*world)->hit(cur_ray, 0.001f, infinity, rec)) {
+      if (ival == 90 && j == 128 && it == 0) {
+        printf("Hit: %f, %f, %f\n", rec.p.x(), rec.p.y(), rec.p.z());
+      }
+
+      ray scattered;
       color new_attenuation;
-      if (rec.mat_ptr->scatter(r, rec, new_attenuation, cur_ray, local_rand_state)) {
+      if (rec.mat_ptr->scatter(r, rec, new_attenuation, scattered, local_rand_state)) {
         cur_attenuation = new_attenuation * cur_attenuation;
+        cur_ray = scattered;
       }
     }
     else {
+      // light stops bouncing
       vec3 unit_direction = unit_vector(cur_ray.direction());
       float t = 0.5f*(unit_direction.y() + 1.0f);
       vec3 c = (1.0f-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);
@@ -122,7 +132,7 @@ __global__ void render(
     float u = (float(i) + curand_uniform(&local_rand_state)) / float(max_x);
     float v = (float(j) + curand_uniform(&local_rand_state)) / float(max_y);
     ray r(origin, lower_left_corner + u*horizontal + v*vertical);
-    fb[pixel_index] += ray_color(r, world, &local_rand_state)/number_samples;
+    fb[pixel_index] += ray_color(r, world, &local_rand_state, i, j, it)/number_samples;
   }
 
   // gamma correct
@@ -137,6 +147,7 @@ int main() {
   const auto aspect_ratio = 16.0 / 9.0;
   const int nx = 400;
   const int ny = static_cast<int>(nx / aspect_ratio);
+  std::cerr << nx << " by " << ny << " image\n";
 
   // Camera
   auto viewport_height = 2.0;
@@ -165,7 +176,7 @@ int main() {
 
   // generate the world
   hittable **d_list;
-  checkCudaErrors(cudaMalloc((void **)&d_list, 4*sizeof(hittable *)));
+  checkCudaErrors(cudaMalloc((void **)&d_list, 5*sizeof(hittable *)));
   hittable **d_world;
   checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(hittable *)));
   create_world<<<1,1>>>(d_list,d_world);
@@ -220,7 +231,7 @@ int main() {
       int ir = int(255.99*r);
       int ig = int(255.99*g);
       int ib = int(255.99*b);
-      std::cout << ir << " " << ig << " " << ib << "\n";
+//      std::cout << ir << " " << ig << " " << ib << "\n";
     }
   }
   // clean up

@@ -6,8 +6,8 @@
 #define CUDA_SPHERE_CUH
 
 #include "hittable.cuh"
-#include "vec3.cuh"
-#include "materials/material.cuh"
+#include "../vec3.cuh"
+#include "../materials/material.cuh"
 
 class sphere : public hittable {
   public:

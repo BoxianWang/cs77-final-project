@@ -6,7 +6,7 @@
 #define CUDA_MATERIAL_CUH
 
 #include <curand_kernel.h>
-#include "../hittable.cuh"
+#include "../objects/hittable.cuh"
 
 struct hit_record;
 
@@ -15,6 +15,19 @@ class material {
     __device__ virtual bool scatter(
         const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered, curandState* rand_state
     ) const = 0;
+};
+
+struct hit_record {
+  point3 p;
+  vec3 normal;
+  material* mat_ptr;
+  double t;
+  bool front_face;
+
+  __device__ inline void set_face_normal(const ray& r, const vec3& outward_normal) {
+    front_face = dot(r.direction(), outward_normal) < 0;
+    normal = front_face ? outward_normal :-outward_normal;
+  }
 };
 
 

@@ -2,9 +2,9 @@
 
 #include <iostream>
 #include "../ray.cuh"
-#include "../sphere.cuh"
-#include "../hittable.cuh"
-#include "../hittable_list.cuh"
+#include "../objects/sphere.cuh"
+#include "../objects/hittable.cuh"
+#include "../objects/hittable_list.cuh"
 #include <stdexcept>
 #include <limits>
 

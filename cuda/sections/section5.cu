@@ -2,9 +2,9 @@
 
 #include <iostream>
 #include "../ray.cuh"
-#include "../sphere.cuh"
-#include "../hittable.cuh"
-#include "../hittable_list.cuh"
+#include "../objects/sphere.cuh"
+#include "../objects/hittable.cuh"
+#include "../objects/hittable_list.cuh"
 #include <stdexcept>
 #include <limits>
 #include <curand_kernel.h>
@@ -82,7 +82,7 @@ __global__ void render_init(int max_x, int max_y, curandState *rand_state) {
 }
 
 // colors the ray
-__device__ vec3 ray_color(const ray& r, hittable **world, curandState *local_rand_state) {
+__device__ vec3 ray_color(const ray& r, hittable **world, curandState *local_rand_state, int i, int j) {
   ray cur_ray = r;
   vec3 cur_attenuation = vec3(1,1,1);
   for(int i = 0; i < 50; i++) {
@@ -121,7 +121,7 @@ __global__ void render(
   for (int it = 0; it < number_samples; it++) {
     float u = (float(i) + curand_uniform(&local_rand_state)) / float(max_x);
     float v = (float(j) + curand_uniform(&local_rand_state)) / float(max_y);
-    ray r(origin, lower_left_corner + u*horizontal + v*vertical);
+    ray r(origin, lower_left_corner + u*horizontal + v*vertical, i, j);
     fb[pixel_index] += ray_color(r, world, &local_rand_state)/number_samples;
   }
 

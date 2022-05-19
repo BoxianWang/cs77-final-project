@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include "../ray.cuh"
-#include "../sphere.cuh"
+#include "../objects/sphere.cuh"
 #include <stdexcept>
 #include <limits>
 
