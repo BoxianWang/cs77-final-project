@@ -9,13 +9,27 @@ We used two main sources:
 sections 1-4 are almost entirely derived from the two sources.
 The remaining sections are converted from the Ray Tracing in One Weekend book.
 
-## Compilation Instructions
+## Connecting to Discovery
+1. ssh <your_net_id>@discovery7.dartmouth.edu
+2. type in your standard DartHub password
 
+## Compilation Instructions
+1. Make sure that you have a valid account on the Discovery cluster, or access to another Unix-based machine with a NVIDIA gpu.
+2. We tested with cmake 3.21.2; higher versions also work.
+3. We tested with CUDA 11.6.
+4. On Discovery:
+```
+module load cmake/3.21
+module load cuda/11.6
+```
+5. From the cmake-build-debug directory:
+    A. run `cmake ..` This updates the makefile
+    B. then run `make`
 
 ## Execution Instructions
-1. Install eog or some other form of ppm viewing tool on your machine
-2. Compile the program
-3. Execute:
+1. Install eog or some other form of ppm viewing tool on your machine; if you're running a Mac, you can view the ppm directly
+    in Preview.
+2. Execute:
 ```
 cuda > out.ppm
 eog out.ppm
