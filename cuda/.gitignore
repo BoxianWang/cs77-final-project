@@ -8,3 +8,4 @@ cmake-build-debug/cuda.cbp
 cuda.cbp
 cuda
 CMakeFiles
+CMakeCache.txt
