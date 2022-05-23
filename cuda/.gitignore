@@ -5,3 +5,6 @@ cmake-build-debug/cmake_install.cmake
 cmake-build-debug/cuda
 cmake-build-debug/cuda.cbp
 .idea
+cuda.cbp
+cuda
+CMakeFiles

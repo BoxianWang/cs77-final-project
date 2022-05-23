@@ -39,7 +39,7 @@ __global__ void create_world(hittable **d_list, hittable **d_world) {
     auto material_right  = new metal(vec3(0.8, 0.6, 0.2), 1.);
 
     *(d_list) = new sphere(vec3(0,-100.5,-1), 100, material_ground);
-    *(d_list+1) = new sphere(vec3(0,0,-1), 0.5, material_center);
+    *(d_list+1) = new sphere(vec3(0,0,-1), 0.5, material_left);
     *(d_list+2) = new sphere(vec3(-1,0,-1), 0.5, material_left);
 //    *(d_list+3) = new sphere(vec3(-1,0,-1), -0.4, material_left);
     *(d_list+3) = new sphere(vec3(1,0,-1), 0.5, material_right);
@@ -91,9 +91,9 @@ __device__ vec3 ray_color(const ray& r, hittable **world, curandState *local_ran
   for(int i = 0; i < 50; i++) {
     hit_record rec;
     if ((*world)->hit(cur_ray, 0.001f, infinity, rec)) {
-      if (ival == 90 && j == 128 && it == 0) {
-        printf("Hit: %f, %f, %f\n", rec.p.x(), rec.p.y(), rec.p.z());
-      }
+//      if (ival == 90 && j == 128 && it == 0) {
+//        printf("Hit: %f, %f, %f\n", rec.p.x(), rec.p.y(), rec.p.z());
+//      }
 
       ray scattered;
       color new_attenuation;
@@ -231,7 +231,7 @@ int main() {
       int ir = int(255.99*r);
       int ig = int(255.99*g);
       int ib = int(255.99*b);
-//      std::cout << ir << " " << ig << " " << ib << "\n";
+      std::cout << ir << " " << ig << " " << ib << "\n";
     }
   }
   // clean up
