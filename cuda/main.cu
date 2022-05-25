@@ -39,11 +39,11 @@ __global__ void create_world(hittable **d_list, hittable **d_world) {
     auto material_right  = new metal(vec3(0.8, 0.6, 0.2), 1.);
 
     *(d_list) = new sphere(vec3(0,-100.5,-1), 100, material_ground);
-    *(d_list+1) = new sphere(vec3(0,0,-1), 0.5, material_left);
+    *(d_list+1) = new sphere(vec3(0,0,-1), 0.5, material_center);
     *(d_list+2) = new sphere(vec3(-1,0,-1), 0.5, material_left);
-//    *(d_list+3) = new sphere(vec3(-1,0,-1), -0.4, material_left);
-    *(d_list+3) = new sphere(vec3(1,0,-1), 0.5, material_right);
-    *d_world    = new hittable_list(d_list,4);
+    *(d_list+3) = new sphere(vec3(-1,0,-1), -0.4, material_left);
+    *(d_list+4) = new sphere(vec3(1,0,-1), 0.5, material_right);
+    *d_world    = new hittable_list(d_list,5);
   }
 }
 
@@ -53,7 +53,7 @@ __global__ void free_world(hittable **d_list, hittable **d_world) {
   delete *(d_list+1);
   delete *(d_list+2);
   delete *(d_list+3);
-//  delete *(d_list+4);
+  delete *(d_list+4);
   delete *d_world;
 }
 
@@ -97,7 +97,7 @@ __device__ vec3 ray_color(const ray& r, hittable **world, curandState *local_ran
 
       ray scattered;
       color new_attenuation;
-      if (rec.mat_ptr->scatter(r, rec, new_attenuation, scattered, local_rand_state)) {
+      if (rec.mat_ptr->scatter(cur_ray, rec, new_attenuation, scattered, local_rand_state)) {
         cur_attenuation = new_attenuation * cur_attenuation;
         cur_ray = scattered;
       }
