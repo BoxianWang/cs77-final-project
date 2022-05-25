@@ -16,11 +16,12 @@ The remaining sections are converted from the Ray Tracing in One Weekend book.
 ## Compilation Instructions
 1. Make sure that you have a valid account on the Discovery cluster, or access to another Unix-based machine with a NVIDIA gpu.
 2. We tested with cmake 3.21.2; higher versions also work.
-3. We tested with CUDA 11.6.
+3. We tested with CUDA 11.2.
 4. On Discovery:
 ```
+srun --nodes=1 --ntasks-per-node=1 --partition gpuq --gres=gpu:1 --pty /bin/bash
 module load cmake/3.21
-module load cuda/11.6
+module load cuda/11.2
 ```
 5. From the cmake-build-debug directory:
     A. run `cmake ..` This updates the makefile
@@ -29,12 +30,8 @@ module load cuda/11.6
 ## Execution Instructions
 1. Install eog or some other form of ppm viewing tool on your machine; if you're running a Mac, you can view the ppm directly
     in Preview.
-2. Execute (on local machine with GPU):
+2. Execute
 ```
 cuda > out.ppm
 eog out.ppm
-```
-execute (on Discovery)
-```
-sbatch schedule.sh
 ```
