@@ -31,4 +31,12 @@ __device__ vec3 random_in_unit_sphere(curandState* rand_state) {
   }
 }
 
+__device__ vec3 random_in_unit_disk(curandState* rand_state) {
+  while (true) {
+    auto p = vec3(random_float(rand_state, -1,1), random_float(rand_state, -1,1), 0);
+    if (p.length_squared() >= 1) continue;
+    return p;
+  }
+}
+
 #endif //CUDA_RANDOMS_CUH

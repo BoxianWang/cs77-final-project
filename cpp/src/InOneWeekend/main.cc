@@ -114,7 +114,10 @@ int main() {
 
     // Render
 
-    std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+  std::cerr << "Rendering...\n";
+  std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+  clock_t start, stop;
+  start = clock();
 
     for (int j = image_height-1; j >= 0; --j) {
         std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
@@ -130,5 +133,7 @@ int main() {
         }
     }
 
-    std::cerr << "\nDone.\n";
+  stop = clock();
+  double timer_seconds = ((double)(stop - start)) / CLOCKS_PER_SEC;
+  std::cerr << "took " << timer_seconds << " seconds.\n";
 }

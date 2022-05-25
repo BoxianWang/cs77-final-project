@@ -117,17 +117,17 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named cos_cubed
+# Target rules for targets named theNextWeekBenchmark
 
 # Build rule for target.
-cos_cubed: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 cos_cubed
-.PHONY : cos_cubed
+theNextWeekBenchmark: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 theNextWeekBenchmark
+.PHONY : theNextWeekBenchmark
 
 # fast build rule for target.
-cos_cubed/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/cos_cubed.dir/build.make CMakeFiles/cos_cubed.dir/build
-.PHONY : cos_cubed/fast
+theNextWeekBenchmark/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/theNextWeekBenchmark.dir/build.make CMakeFiles/theNextWeekBenchmark.dir/build
+.PHONY : theNextWeekBenchmark/fast
 
 #=============================================================================
 # Target rules for targets named theRestOfYourLife
@@ -167,6 +167,19 @@ cos_density: cmake_check_build_system
 cos_density/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cos_density.dir/build.make CMakeFiles/cos_density.dir/build
 .PHONY : cos_density/fast
+
+#=============================================================================
+# Target rules for targets named cos_cubed
+
+# Build rule for target.
+cos_cubed: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 cos_cubed
+.PHONY : cos_cubed
+
+# fast build rule for target.
+cos_cubed/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cos_cubed.dir/build.make CMakeFiles/cos_cubed.dir/build
+.PHONY : cos_cubed/fast
 
 #=============================================================================
 # Target rules for targets named pi
@@ -256,6 +269,30 @@ src/InOneWeekend/main.s: src/InOneWeekend/main.cc.s
 src/InOneWeekend/main.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/inOneWeekend.dir/build.make CMakeFiles/inOneWeekend.dir/src/InOneWeekend/main.cc.s
 .PHONY : src/InOneWeekend/main.cc.s
+
+src/TheNextWeek/benchmark/main.o: src/TheNextWeek/benchmark/main.cc.o
+.PHONY : src/TheNextWeek/benchmark/main.o
+
+# target to build an object file
+src/TheNextWeek/benchmark/main.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/theNextWeekBenchmark.dir/build.make CMakeFiles/theNextWeekBenchmark.dir/src/TheNextWeek/benchmark/main.cc.o
+.PHONY : src/TheNextWeek/benchmark/main.cc.o
+
+src/TheNextWeek/benchmark/main.i: src/TheNextWeek/benchmark/main.cc.i
+.PHONY : src/TheNextWeek/benchmark/main.i
+
+# target to preprocess a source file
+src/TheNextWeek/benchmark/main.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/theNextWeekBenchmark.dir/build.make CMakeFiles/theNextWeekBenchmark.dir/src/TheNextWeek/benchmark/main.cc.i
+.PHONY : src/TheNextWeek/benchmark/main.cc.i
+
+src/TheNextWeek/benchmark/main.s: src/TheNextWeek/benchmark/main.cc.s
+.PHONY : src/TheNextWeek/benchmark/main.s
+
+# target to generate assembly for a file
+src/TheNextWeek/benchmark/main.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/theNextWeekBenchmark.dir/build.make CMakeFiles/theNextWeekBenchmark.dir/src/TheNextWeek/benchmark/main.cc.s
+.PHONY : src/TheNextWeek/benchmark/main.cc.s
 
 src/TheNextWeek/main.o: src/TheNextWeek/main.cc.o
 .PHONY : src/TheNextWeek/main.o
@@ -465,10 +502,14 @@ help:
 	@echo "... sphere_importance"
 	@echo "... sphere_plot"
 	@echo "... theNextWeek"
+	@echo "... theNextWeekBenchmark"
 	@echo "... theRestOfYourLife"
 	@echo "... src/InOneWeekend/main.o"
 	@echo "... src/InOneWeekend/main.i"
 	@echo "... src/InOneWeekend/main.s"
+	@echo "... src/TheNextWeek/benchmark/main.o"
+	@echo "... src/TheNextWeek/benchmark/main.i"
+	@echo "... src/TheNextWeek/benchmark/main.s"
 	@echo "... src/TheNextWeek/main.o"
 	@echo "... src/TheNextWeek/main.i"
 	@echo "... src/TheNextWeek/main.s"

@@ -31,41 +31,73 @@ void check_cuda(cudaError_t result, const char *const func, const char *const fi
 }
 
 // creates the world -- both the materials and the spheres
-__global__ void create_world(hittable **d_list, hittable **d_world) {
+__global__ void create_world(hittable **d_list, hittable **d_world, curandState *rand_state) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
-    auto material_ground = new lambertian(vec3(0.8, 0.8, 0.0));
-    auto material_center = new lambertian(vec3(0.7, 0.3, 0.3));
-    auto material_left   = new dielectric(1.5);
-    auto material_right  = new metal(vec3(0.8, 0.6, 0.2), 1.);
+    curandState* local_rand_state = rand_state;
 
-    *(d_list) = new sphere(vec3(0,-100.5,-1), 100, material_ground);
-    *(d_list+1) = new sphere(vec3(0,0,-1), 0.5, material_center);
-    *(d_list+2) = new sphere(vec3(-1,0,-1), 0.5, material_left);
-    *(d_list+3) = new sphere(vec3(-1,0,-1), -0.4, material_left);
-    *(d_list+4) = new sphere(vec3(1,0,-1), 0.5, material_right);
-    *d_world    = new hittable_list(d_list,5);
+    auto material_ground = new lambertian(vec3(0.5, 0.5, 0.5));
+    auto material_1   = new dielectric(1.5);
+    auto material_2 = new lambertian(vec3(0.4, 0.2, 0.1));
+    auto material_3  = new metal(vec3(0.7, 0.6, 0.5), 0.);
+
+    int sphereNum = 0;
+    d_list[sphereNum++] = new sphere(vec3(0,-1000,0), 1000, material_ground);
+    d_list[sphereNum++] = new sphere(vec3(0, 1, 0), 1, material_1);
+    d_list[sphereNum++] = new sphere(vec3(-4, 1, 0), 1, material_2);
+    d_list[sphereNum++] = new sphere(vec3(4, 1, 0), 1, material_3);
+
+    for (int a = -11; a < 11; a++) {
+      for (int b = -11; b < 11; b++) {
+        float choose_mat = random_float(local_rand_state);
+        point3 center(a + 0.9*random_float(local_rand_state), 0.2, b + 0.9*random_float(local_rand_state));
+
+        if ((center - point3(4, 0.2, 0)).length() > 0.9) {
+          material* sphere_material;
+
+          if (choose_mat < 0.8) {
+            // diffuse
+            auto albedo = vec3_random(local_rand_state) * vec3_random(local_rand_state);
+            sphere_material = new lambertian(albedo);
+            d_list[sphereNum++] = new sphere(center, 0.2, sphere_material);
+          } else if (choose_mat < 0.95) {
+            // metal
+            auto albedo = vec3_random(local_rand_state, 0.5, 1);
+            auto fuzz = random_float(local_rand_state, 0, 0.5);
+            sphere_material = new metal(albedo, fuzz);
+            d_list[sphereNum++] = new sphere(center, 0.2, sphere_material);
+          } else {
+            // glass
+            sphere_material = new dielectric(1.5);
+            d_list[sphereNum++] = new sphere(center, 0.2, sphere_material);
+          }
+        }
+      }
+    }
+
+    *d_world = new hittable_list(d_list, sphereNum);
   }
 }
 
 // cleans up the world
 __global__ void free_world(hittable **d_list, hittable **d_world) {
-  delete *(d_list);
-  delete *(d_list+1);
-  delete *(d_list+2);
-  delete *(d_list+3);
-  delete *(d_list+4);
+  int objectNumber = (*d_world)->getObjectNumber();
+  for (int i = 0; i < objectNumber; i++) {
+    delete *(d_list+i);
+  }
   delete *d_world;
 }
 
 // creates the camera
 __global__ void create_camera(camera **d_cam) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
-    auto origin = point3(0, 0, 0);
-    auto lookat = point3(0, 0, 2.0);
+    auto origin = point3(13, 2, 3);
+    auto lookat = point3(0, 0, 0);
     auto vup = point3(0, 1.0, 0);
-    float vfov = 100;
-    float aspectRatio = 16./9.;
-    *d_cam = new camera(origin, lookat, vup, vfov, aspectRatio);
+    float vfov = 20;
+    float aspectRatio = 3./2.;
+    float aperture = .1;
+    float dist_to_focus = 10;
+    *d_cam = new camera(origin, lookat, vup, vfov, aspectRatio, aperture, dist_to_focus);
   }
 }
 
@@ -115,8 +147,8 @@ __device__ vec3 ray_color(const ray& r, hittable **world, curandState *local_ran
 
 // actually renders a pixel
 __global__ void render(
-    vec3 *fb, int max_x, int max_y, vec3 lower_left_corner, vec3 horizontal,
-    vec3 vertical, vec3 origin, hittable** world, curandState *rand_state,
+    vec3 *fb, int max_x, int max_y, hittable** world, curandState *rand_state,
+    camera** cam,
     int number_samples
 ) {
   int i = threadIdx.x + blockIdx.x * blockDim.x;
@@ -131,7 +163,7 @@ __global__ void render(
   for (int it = 0; it < number_samples; it++) {
     float u = (float(i) + curand_uniform(&local_rand_state)) / float(max_x);
     float v = (float(j) + curand_uniform(&local_rand_state)) / float(max_y);
-    ray r(origin, lower_left_corner + u*horizontal + v*vertical);
+    ray r = (*cam)->get_ray(&local_rand_state, u, v);
     fb[pixel_index] += ray_color(r, world, &local_rand_state, i, j, it)/number_samples;
   }
 
@@ -144,20 +176,12 @@ __global__ void render(
 
 int main() {
   // Image
-  const auto aspect_ratio = 16.0 / 9.0;
-  const int nx = 400;
+  const auto aspect_ratio = 3.0 / 2.0;
+  const int nx = 1200;
   const int ny = static_cast<int>(nx / aspect_ratio);
   std::cerr << nx << " by " << ny << " image\n";
 
   // Camera
-  auto viewport_height = 2.0;
-  auto viewport_width = aspect_ratio * viewport_height;
-  auto focal_length = 1.0;
-
-  auto origin = point3(0, 0, 0);
-  auto horizontal = vec3(viewport_width, 0, 0);
-  auto vertical = vec3(0, viewport_height, 0);
-  auto lower_left_corner = origin - horizontal/2 - vertical/2 - vec3(0, 0, focal_length);
 
   int num_pixels = nx*ny;
   size_t fb_size = num_pixels*sizeof(vec3);
@@ -176,10 +200,10 @@ int main() {
 
   // generate the world
   hittable **d_list;
-  checkCudaErrors(cudaMalloc((void **)&d_list, 5*sizeof(hittable *)));
+  checkCudaErrors(cudaMalloc((void **)&d_list, 488*sizeof(hittable *)));
   hittable **d_world;
   checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(hittable *)));
-  create_world<<<1,1>>>(d_list,d_world);
+  create_world<<<1,1>>>(d_list, d_world, d_rand_state);
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
 
@@ -205,13 +229,10 @@ int main() {
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
   render<<<blocks, threads>>>(fb, nx, ny,
-                              lower_left_corner,
-                              horizontal,
-                              vertical,
-                              origin,
                               d_world,
                               d_rand_state,
-                              100       // number_samples
+                              d_cam,
+                              500       // number_samples
                               );
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());

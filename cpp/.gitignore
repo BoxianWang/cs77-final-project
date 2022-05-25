@@ -15,4 +15,5 @@ cmake-build-debug/pi
 cmake-build-debug/sphere_importance
 cmake-build-debug/sphere_plot
 cmake-build-debug/theNextWeek
+cmake-build-debug/theNextWeekBenchmark
 cmake-build-debug/theRestOfYourLife

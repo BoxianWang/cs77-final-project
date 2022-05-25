@@ -29,6 +29,10 @@ class hittable_list : public hittable {
         const ray& r, double t_min, double t_max, hit_record& rec
     ) const override;
 
+    __device__ int getObjectNumber() override {
+      return objectNumber;
+    }
+
   public:
     // the actual objects
     hittable** objects;

@@ -4,6 +4,7 @@ cmake-build-debug/Testing
 cmake-build-debug/cmake_install.cmake
 cmake-build-debug/cuda
 cmake-build-debug/cuda.cbp
+cmake-build-debug/out.ppm
 .idea
 cuda.cbp
 cuda

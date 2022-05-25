@@ -50,6 +50,25 @@ set ( SOURCE_NEXT_WEEK
   src/TheNextWeek/main.cc
 )
 
+set ( SOURCE_NEXT_WEEK_BENCHMARK
+        ${COMMON_ALL}
+        src/common/aabb.h
+        src/common/external/stb_image.h
+        src/common/perlin.h
+        src/common/rtw_stb_image.h
+        src/common/texture.h
+        src/TheNextWeek/aarect.h
+        src/TheNextWeek/box.h
+        src/TheNextWeek/bvh.h
+        src/TheNextWeek/constant_medium.h
+        src/TheNextWeek/hittable.h
+        src/TheNextWeek/hittable_list.h
+        src/TheNextWeek/material.h
+        src/TheNextWeek/moving_sphere.h
+        src/TheNextWeek/sphere.h
+        src/TheNextWeek/benchmark/main.cc
+)
+
 set ( SOURCE_REST_OF_YOUR_LIFE
   ${COMMON_ALL}
   src/common/aabb.h
@@ -72,6 +91,7 @@ set ( SOURCE_REST_OF_YOUR_LIFE
 # Executables
 add_executable(inOneWeekend      ${SOURCE_ONE_WEEKEND})
 add_executable(theNextWeek       ${SOURCE_NEXT_WEEK})
+add_executable(theNextWeekBenchmark  ${SOURCE_NEXT_WEEK_BENCHMARK})
 add_executable(theRestOfYourLife ${SOURCE_REST_OF_YOUR_LIFE})
 add_executable(cos_cubed         src/TheRestOfYourLife/cos_cubed.cc         ${COMMON_ALL})
 add_executable(cos_density       src/TheRestOfYourLife/cos_density.cc       ${COMMON_ALL})
