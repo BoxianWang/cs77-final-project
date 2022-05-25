@@ -1,3 +1,18 @@
 # Git Ignore Rules for raytracing.github.io
 
 /build/
+cmake-build-debug/Testing
+cmake-build-debug/CMakeFiles
+cmake-build-debug/cmake_install.cmake
+cmake-build-debug/CMakeCache.txt
+cmake-build-debug/RTWeekend.cbp
+.idea
+cmake-build-debug/cos_cubed
+cmake-build-debug/cos_density
+cmake-build-debug/inOneWeekend
+cmake-build-debug/integrate_x_sq
+cmake-build-debug/pi
+cmake-build-debug/sphere_importance
+cmake-build-debug/sphere_plot
+cmake-build-debug/theNextWeek
+cmake-build-debug/theRestOfYourLife
