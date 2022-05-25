@@ -9,15 +9,24 @@
 
 class hittable_list : public hittable {
   public:
+    hittable_list() {}
+
     // hittable_list is intended to be called from the gpu in order to create a hittable object
     __device__ hittable_list(hittable** objs, int numObjects) {
       objects = objs;
       objectNumber = numObjects;
+      objectCapacity = numObjects;
+    }
+    // alternative if capacity > numObjects
+    __device__ hittable_list(hittable** objs, int numObjects, int capacity) {
+      objects = objs;
+      objectNumber = numObjects;
+      objectCapacity = capacity;
     }
 
     // does a ray hit the object?
-    __device__ bool hit(
-        const ray& r, float t_min, float t_max, hit_record& rec
+    __device__ virtual bool hit(
+        const ray& r, double t_min, double t_max, hit_record& rec
     ) const override;
 
     __device__ int getObjectNumber() override {
@@ -29,10 +38,12 @@ class hittable_list : public hittable {
     hittable** objects;
     // the number of objects currently stored
     int objectNumber;
+    // the capacity of objects we can store
+    int objectCapacity;
 };
 
 
-__device__ bool hittable_list::hit(const ray& r, float t_min, float t_max, hit_record& rec) const {
+__device__ bool hittable_list::hit(const ray& r, double t_min, double t_max, hit_record& rec) const {
   hit_record temp_rec;
   bool hit_anything = false;
   auto closest_so_far = t_max;

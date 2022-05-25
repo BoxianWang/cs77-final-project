@@ -11,18 +11,19 @@
 
 class sphere : public hittable {
   public:
-    __host__ __device__ sphere(point3 cen, float r, material* mat) : center(cen), radius(r), mat_ptr(mat) {};
+    __host__ __device__ sphere() {}
+    __host__ __device__ sphere(point3 cen, double r, material* mat) : center(cen), radius(r), mat_ptr(mat) {};
 
-    __device__ bool hit(
-        const ray& r, float t_min, float t_max, hit_record& rec) const override;
+    __device__ virtual bool hit(
+        const ray& r, double t_min, double t_max, hit_record& rec) const override;
 
   public:
     point3 center;
-    float radius;
+    double radius;
     material* mat_ptr;
 };
 
-__device__ bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec) const {
+__device__ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) const {
   vec3 oc = r.origin() - center;
   auto a = r.direction().length_squared();
   auto half_b = dot(oc, r.direction());

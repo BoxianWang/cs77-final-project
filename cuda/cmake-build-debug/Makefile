@@ -129,6 +129,80 @@ cuda/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cuda.dir/build.make CMakeFiles/cuda.dir/build
 .PHONY : cuda/fast
 
+#=============================================================================
+# Target rules for targets named inOneWeekend
+
+# Build rule for target.
+inOneWeekend: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 inOneWeekend
+.PHONY : inOneWeekend
+
+# fast build rule for target.
+inOneWeekend/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/inOneWeekend.dir/build.make CMakeFiles/inOneWeekend.dir/build
+.PHONY : inOneWeekend/fast
+
+#=============================================================================
+# Target rules for targets named inOneWeekendFloats
+
+# Build rule for target.
+inOneWeekendFloats: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 inOneWeekendFloats
+.PHONY : inOneWeekendFloats
+
+# fast build rule for target.
+inOneWeekendFloats/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/inOneWeekendFloats.dir/build.make CMakeFiles/inOneWeekendFloats.dir/build
+.PHONY : inOneWeekendFloats/fast
+
+inOneWeekend/main.o: inOneWeekend/main.cu.o
+.PHONY : inOneWeekend/main.o
+
+# target to build an object file
+inOneWeekend/main.cu.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/inOneWeekend.dir/build.make CMakeFiles/inOneWeekend.dir/inOneWeekend/main.cu.o
+.PHONY : inOneWeekend/main.cu.o
+
+inOneWeekend/main.i: inOneWeekend/main.cu.i
+.PHONY : inOneWeekend/main.i
+
+# target to preprocess a source file
+inOneWeekend/main.cu.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/inOneWeekend.dir/build.make CMakeFiles/inOneWeekend.dir/inOneWeekend/main.cu.i
+.PHONY : inOneWeekend/main.cu.i
+
+inOneWeekend/main.s: inOneWeekend/main.cu.s
+.PHONY : inOneWeekend/main.s
+
+# target to generate assembly for a file
+inOneWeekend/main.cu.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/inOneWeekend.dir/build.make CMakeFiles/inOneWeekend.dir/inOneWeekend/main.cu.s
+.PHONY : inOneWeekend/main.cu.s
+
+inOneWeekendFloats/main.o: inOneWeekendFloats/main.cu.o
+.PHONY : inOneWeekendFloats/main.o
+
+# target to build an object file
+inOneWeekendFloats/main.cu.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/inOneWeekendFloats.dir/build.make CMakeFiles/inOneWeekendFloats.dir/inOneWeekendFloats/main.cu.o
+.PHONY : inOneWeekendFloats/main.cu.o
+
+inOneWeekendFloats/main.i: inOneWeekendFloats/main.cu.i
+.PHONY : inOneWeekendFloats/main.i
+
+# target to preprocess a source file
+inOneWeekendFloats/main.cu.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/inOneWeekendFloats.dir/build.make CMakeFiles/inOneWeekendFloats.dir/inOneWeekendFloats/main.cu.i
+.PHONY : inOneWeekendFloats/main.cu.i
+
+inOneWeekendFloats/main.s: inOneWeekendFloats/main.cu.s
+.PHONY : inOneWeekendFloats/main.s
+
+# target to generate assembly for a file
+inOneWeekendFloats/main.cu.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/inOneWeekendFloats.dir/build.make CMakeFiles/inOneWeekendFloats.dir/inOneWeekendFloats/main.cu.s
+.PHONY : inOneWeekendFloats/main.cu.s
+
 main.o: main.cu.o
 .PHONY : main.o
 
@@ -162,6 +236,14 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... cuda"
+	@echo "... inOneWeekend"
+	@echo "... inOneWeekendFloats"
+	@echo "... inOneWeekend/main.o"
+	@echo "... inOneWeekend/main.i"
+	@echo "... inOneWeekend/main.s"
+	@echo "... inOneWeekendFloats/main.o"
+	@echo "... inOneWeekendFloats/main.i"
+	@echo "... inOneWeekendFloats/main.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

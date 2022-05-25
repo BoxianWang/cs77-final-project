@@ -12,7 +12,7 @@ class lambertian : public material {
 public:
   __device__ lambertian(const color& a) : albedo(a) {}
 
-  __device__ bool scatter(
+  __device__ virtual bool scatter(
       const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered, curandState* rand_state
   ) const override {
     auto scatter_direction = rec.normal + vec3_random(rand_state);

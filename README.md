@@ -13,4 +13,10 @@ This executable is built in `./cpp/cmake-build-debug` and called `inOneWeekend`.
 This executable is built in `./cpp/cmake-build-debug` and called `theNextWeekBenchmark`
 123.324 seconds (About 2 minutes)
 
-### CUDA (using 
+### CUDA (using "Raytracing In One Weekend")
+This executable is built in `./cuda/cmake-build-debug` and called `inOneWeekend`.
+76.4971 seconds
+
+### CUDA (using "Raytracing In One Weekend" refactored to use only floats)
+This executable is built in `./cuda/cmake-build-debug` and called `inOneWeekendFloat`.
+20.0741 seconds (More than 3x faster than using mixed floats and doubles!)

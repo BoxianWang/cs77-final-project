@@ -12,7 +12,7 @@ class metal : public material {
   public:
     __device__ metal(const color& a, float f) : albedo(a), fuzz(f < 1 ? f : 1) {}
 
-    __device__ bool scatter(
+    __device__ virtual bool scatter(
         const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered, curandState* rand_state
     ) const override {
       vec3 reflected = reflect(unit_vector(r_in.direction()), rec.normal);

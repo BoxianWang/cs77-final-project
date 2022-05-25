@@ -16,24 +16,24 @@ class camera {
   public:
 
   __device__ camera(
-        point3 lookFrom,
-        point3 lookAt,
+        point3 lookfrom,
+        point3 lookat,
         vec3   vup,
-        float vFov, // vertical field of view
-        float aspect_ratio,
-        float aperture,
-        float focus_dist
+        float vfov, // vertical field of view
+        double aspect_ratio,
+        double aperture,
+        double focus_dist
     ) {
-      auto theta = degrees_to_radians(vFov);
-      auto h = tan(theta/2.f);
-      auto viewport_height = 2.0f * h;
+      auto theta = degrees_to_radians(vfov);
+      auto h = tan(theta/2);
+      auto viewport_height = 2.0 * h;
       auto viewport_width = aspect_ratio * viewport_height;
 
-      w = unit_vector(lookFrom - lookAt);
+      w = unit_vector(lookfrom - lookat);
       u = unit_vector(cross(vup, w));
       v = cross(w, u);
 
-      origin = lookFrom;
+      origin = lookfrom;
       horizontal = focus_dist * viewport_width * u;
       vertical = focus_dist * viewport_height * v;
       lower_left_corner = origin - horizontal/2 - vertical/2 - focus_dist*w;
@@ -41,11 +41,11 @@ class camera {
       lens_radius = aperture / 2;
     }
 
-    __device__ ray get_ray(curandState* rand_state, float u_r, float v_r) const {
+    __device__ ray get_ray(curandState* rand_state, double u, double v) const {
       vec3 rd = lens_radius * random_in_unit_disk(rand_state);
-      vec3 offset = u_r*rd.x()*vec3(1,0,0) + v_r*rd.y()*vec3(0,1,0);
+      vec3 offset = u*rd.x()*vec3(1,0,0) + v*rd.y()*vec3(0,1,0);
 
-      return ray(origin+offset, lower_left_corner + u_r*horizontal + v_r*vertical - origin - offset);
+      return ray(origin+offset, lower_left_corner + u*horizontal + v*vertical - origin - offset);
     }
 
   private:
@@ -54,7 +54,7 @@ class camera {
     vec3 horizontal;
     vec3 vertical;
     vec3 u, v, w;
-    float lens_radius;
+    double lens_radius;
 };
 
 

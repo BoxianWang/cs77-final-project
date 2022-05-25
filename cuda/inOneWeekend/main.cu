@@ -15,7 +15,7 @@
 #include "materials/metal.cuh"
 #include "materials/dielectric.cuh"
 
-const float infinity = std::numeric_limits<float>::infinity();
+const double infinity = std::numeric_limits<double>::infinity();
 
 // prints out any cuda errors that occur
 void check_cuda(cudaError_t result, const char *const func, const char *const file, const int line) {
@@ -49,7 +49,7 @@ __global__ void create_world(hittable **d_list, hittable **d_world, curandState 
     for (int a = -11; a < 11; a++) {
       for (int b = -11; b < 11; b++) {
         float choose_mat = random_float(local_rand_state);
-        point3 center(float(a) + 0.f*random_float(local_rand_state), 0.2f, float(b) + 0.9f*random_float(local_rand_state));
+        point3 center(a + 0.9*random_float(local_rand_state), 0.2, b + 0.9*random_float(local_rand_state));
 
         if ((center - point3(4, 0.2, 0)).length() > 0.9) {
           material* sphere_material;
@@ -91,13 +91,13 @@ __global__ void free_world(hittable **d_list, hittable **d_world) {
 __global__ void create_camera(camera **d_cam) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
     auto origin = point3(13, 2, 3);
-    auto lookAt = point3(0, 0, 0);
+    auto lookat = point3(0, 0, 0);
     auto vup = point3(0, 1.0, 0);
-    float vFov = 20;
+    float vfov = 20;
     float aspectRatio = 3./2.;
     float aperture = .1;
     float dist_to_focus = 10;
-    *d_cam = new camera(origin, lookAt, vup, vFov, aspectRatio, aperture, dist_to_focus);
+    *d_cam = new camera(origin, lookat, vup, vfov, aspectRatio, aperture, dist_to_focus);
   }
 }
 
@@ -108,21 +108,25 @@ __global__ void free_camera(camera **d_cam) {
 
 // initializes the rand state for memory
 __global__ void render_init(int max_x, int max_y, curandState *rand_state) {
-  unsigned int i = threadIdx.x + blockIdx.x * blockDim.x;
-  unsigned int j = threadIdx.y + blockIdx.y * blockDim.y;
+  int i = threadIdx.x + blockIdx.x * blockDim.x;
+  int j = threadIdx.y + blockIdx.y * blockDim.y;
   if((i >= max_x) || (j >= max_y)) return;
-  int pixel_index = int(j)*max_x + int(i);
+  int pixel_index = j*max_x + i;
   //Each thread gets same seed, a different sequence number, no offset
   curand_init(1984, pixel_index, 0, &rand_state[pixel_index]);
 }
 
 // colors the ray
-__device__ vec3 ray_color(const ray& r, hittable **world, curandState *local_rand_state) {
+__device__ vec3 ray_color(const ray& r, hittable **world, curandState *local_rand_state, int ival, int j, int it) {
   ray cur_ray = r;
   vec3 cur_attenuation = vec3(1,1,1);
   for(int i = 0; i < 50; i++) {
     hit_record rec;
     if ((*world)->hit(cur_ray, 0.001f, infinity, rec)) {
+//      if (ival == 90 && j == 128 && it == 0) {
+//        printf("Hit: %f, %f, %f\n", rec.p.x(), rec.p.y(), rec.p.z());
+//      }
+
       ray scattered;
       color new_attenuation;
       if (rec.mat_ptr->scatter(cur_ray, rec, new_attenuation, scattered, local_rand_state)) {
@@ -147,20 +151,20 @@ __global__ void render(
     camera** cam,
     int number_samples
 ) {
-  unsigned int i = threadIdx.x + blockIdx.x * blockDim.x;
-  unsigned int j = threadIdx.y + blockIdx.y * blockDim.y;
+  int i = threadIdx.x + blockIdx.x * blockDim.x;
+  int j = threadIdx.y + blockIdx.y * blockDim.y;
   if((i >= max_x) || (j >= max_y)) return;
-  int pixel_index = int(j)*max_x + int(i);
+  int pixel_index = j*max_x + i;
   curandState local_rand_state = rand_state[pixel_index];
 
   fb[pixel_index] = vec3(0,0,0);
 
-  // this loop handles super sampling for antialiasing
+  // this loop handles supersampling for antialiasing
   for (int it = 0; it < number_samples; it++) {
     float u = (float(i) + curand_uniform(&local_rand_state)) / float(max_x);
     float v = (float(j) + curand_uniform(&local_rand_state)) / float(max_y);
     ray r = (*cam)->get_ray(&local_rand_state, u, v);
-    fb[pixel_index] += ray_color(r, world, &local_rand_state) / float(number_samples);
+    fb[pixel_index] += ray_color(r, world, &local_rand_state, i, j, it)/number_samples;
   }
 
   // gamma correct
@@ -194,7 +198,7 @@ int main() {
   int tx=8;
   int ty=8;
 
-  // set up the random state
+  // setup the random state
   dim3 blocks(nx/tx + 1, ny/ty + 1);
   // total threads are tx*ty
   dim3 threads(tx,ty);
@@ -235,7 +239,7 @@ int main() {
   checkCudaErrors(cudaDeviceSynchronize());
 
   stop = clock();
-  float timer_seconds = ((float)(stop - start)) / CLOCKS_PER_SEC;
+  double timer_seconds = ((double)(stop - start)) / CLOCKS_PER_SEC;
   std::cerr << "took " << timer_seconds << " seconds.\n";
 
   // Output FB as Image
