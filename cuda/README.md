@@ -29,8 +29,12 @@ module load cuda/11.6
 ## Execution Instructions
 1. Install eog or some other form of ppm viewing tool on your machine; if you're running a Mac, you can view the ppm directly
     in Preview.
-2. Execute:
+2. Execute (on local machine with GPU):
 ```
 cuda > out.ppm
 eog out.ppm
+```
+execute (on Discovery)
+```
+sbatch schedule.sh
 ```

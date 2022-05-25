@@ -5,5 +5,7 @@ set(CMAKE_CUDA_STANDARD 11)
 
 add_executable(cuda main.cu)
 
+target_compile_options(cuda PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-gencode arch=compute_37,code=sm_37>)
+
 set_target_properties(cuda PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
