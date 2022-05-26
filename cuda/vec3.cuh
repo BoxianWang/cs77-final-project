@@ -19,8 +19,10 @@ class vec3 {
     __host__ __device__ float z() const { return e[2]; }
 
     __host__ __device__ vec3 operator-() const { return vec3(-e[0], -e[1], -e[2]); }
-    float operator[](int i) const { return e[i]; }
-    float& operator[](int i) { return e[i]; }
+
+    __host__ __device__ float operator[](int i) const { return e[i]; }
+
+    __host__ __device__ float& operator[](int i) { return e[i]; }
 
     __host__ __device__ vec3& operator+=(const vec3 &v) {
       e[0] += v.e[0];

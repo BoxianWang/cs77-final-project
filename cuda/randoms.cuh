@@ -15,6 +15,11 @@ __device__ inline float random_float(curandState* rand_state, float min, float m
   return min + (max - min)* random_float(rand_state);
 }
 
+__device__ inline int random_int(curandState* rand_state, int min, int max) {
+  // Returns a random integer in [min,max].
+  return static_cast<int>(random_float(rand_state, float(min), float(max+1)));
+}
+
 __device__ inline static vec3 vec3_random(curandState* rand_state) {
   return vec3(random_float(rand_state), random_float(rand_state), random_float(rand_state));
 }

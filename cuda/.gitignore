@@ -5,6 +5,7 @@ cmake-build-debug/cmake_install.cmake
 cmake-build-debug/cuda
 cmake-build-debug/inOneWeekend
 cmake-build-debug/inOneWeekendFloats
+cmake-build-debug/theNextWeekTree
 cmake-build-debug/cuda.cbp
 cmake-build-debug/out.ppm
 .idea

@@ -130,6 +130,19 @@ cuda/fast:
 .PHONY : cuda/fast
 
 #=============================================================================
+# Target rules for targets named theNextWeekTree
+
+# Build rule for target.
+theNextWeekTree: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 theNextWeekTree
+.PHONY : theNextWeekTree
+
+# fast build rule for target.
+theNextWeekTree/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/theNextWeekTree.dir/build.make CMakeFiles/theNextWeekTree.dir/build
+.PHONY : theNextWeekTree/fast
+
+#=============================================================================
 # Target rules for targets named inOneWeekend
 
 # Build rule for target.
@@ -227,6 +240,30 @@ main.cu.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cuda.dir/build.make CMakeFiles/cuda.dir/main.cu.s
 .PHONY : main.cu.s
 
+theNextWeek/tree/main.o: theNextWeek/tree/main.cu.o
+.PHONY : theNextWeek/tree/main.o
+
+# target to build an object file
+theNextWeek/tree/main.cu.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/theNextWeekTree.dir/build.make CMakeFiles/theNextWeekTree.dir/theNextWeek/tree/main.cu.o
+.PHONY : theNextWeek/tree/main.cu.o
+
+theNextWeek/tree/main.i: theNextWeek/tree/main.cu.i
+.PHONY : theNextWeek/tree/main.i
+
+# target to preprocess a source file
+theNextWeek/tree/main.cu.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/theNextWeekTree.dir/build.make CMakeFiles/theNextWeekTree.dir/theNextWeek/tree/main.cu.i
+.PHONY : theNextWeek/tree/main.cu.i
+
+theNextWeek/tree/main.s: theNextWeek/tree/main.cu.s
+.PHONY : theNextWeek/tree/main.s
+
+# target to generate assembly for a file
+theNextWeek/tree/main.cu.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/theNextWeekTree.dir/build.make CMakeFiles/theNextWeekTree.dir/theNextWeek/tree/main.cu.s
+.PHONY : theNextWeek/tree/main.cu.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -238,6 +275,7 @@ help:
 	@echo "... cuda"
 	@echo "... inOneWeekend"
 	@echo "... inOneWeekendFloats"
+	@echo "... theNextWeekTree"
 	@echo "... inOneWeekend/main.o"
 	@echo "... inOneWeekend/main.i"
 	@echo "... inOneWeekend/main.s"
@@ -247,6 +285,9 @@ help:
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... theNextWeek/tree/main.o"
+	@echo "... theNextWeek/tree/main.i"
+	@echo "... theNextWeek/tree/main.s"
 .PHONY : help
 
 

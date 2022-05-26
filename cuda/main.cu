@@ -3,6 +3,7 @@
 #include <iostream>
 #include "ray.cuh"
 #include "objects/sphere.cuh"
+#include "objects/moving_sphere.cuh"
 #include "objects/hittable.cuh"
 #include "objects/hittable_list.cuh"
 #include <stdexcept>
@@ -34,7 +35,6 @@ void check_cuda(cudaError_t result, const char *const func, const char *const fi
 __global__ void create_world(hittable **d_list, hittable **d_world, curandState *rand_state) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
     curandState* local_rand_state = rand_state;
-
     auto material_ground = new lambertian(vec3(0.5, 0.5, 0.5));
     auto material_1   = new dielectric(1.5);
     auto material_2 = new lambertian(vec3(0.4, 0.2, 0.1));
@@ -58,6 +58,8 @@ __global__ void create_world(hittable **d_list, hittable **d_world, curandState 
             // diffuse
             auto albedo = vec3_random(local_rand_state) * vec3_random(local_rand_state);
             sphere_material = new lambertian(albedo);
+//            vec3 center2 = center + vec3(0.f, random_float(local_rand_state, 0.f, .5f), 0.f);
+//            d_list[sphereNum++] = new moving_sphere(center, center2, 0., 1., 0.2, sphere_material);
             d_list[sphereNum++] = new sphere(center, 0.2, sphere_material);
           } else if (choose_mat < 0.95) {
             // metal
@@ -74,7 +76,7 @@ __global__ void create_world(hittable **d_list, hittable **d_world, curandState 
       }
     }
 
-    *d_world = new hittable_list(d_list, sphereNum);
+    *d_world = new hittable_list(d_list, sphereNum, local_rand_state);
   }
 }
 
@@ -97,7 +99,7 @@ __global__ void create_camera(camera **d_cam) {
     float aspectRatio = 3./2.;
     float aperture = .1;
     float dist_to_focus = 10;
-    *d_cam = new camera(origin, lookAt, vup, vFov, aspectRatio, aperture, dist_to_focus);
+    *d_cam = new camera(origin, lookAt, vup, vFov, aspectRatio, aperture, dist_to_focus, 0., 1.);
   }
 }
 
@@ -177,6 +179,10 @@ int main() {
   const int ny = static_cast<int>(nx / aspect_ratio);
   std::cerr << nx << " by " << ny << " image\n";
 
+  size_t size = 0;
+  cudaThreadSetLimit(cudaLimitStackSize, 4096);
+  cudaThreadGetLimit(&size, cudaLimitStackSize);
+  std::cerr << "STACK SIZE: " << size << std::endl;
   // Camera
 
   int num_pixels = nx*ny;
@@ -204,8 +210,10 @@ int main() {
   // generate the world
   hittable **d_list;
   checkCudaErrors(cudaMalloc((void **)&d_list, 488*sizeof(hittable *)));
+  checkCudaErrors(cudaDeviceSynchronize());
   hittable **d_world;
   checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(hittable *)));
+  checkCudaErrors(cudaDeviceSynchronize());
   create_world<<<1,1>>>(d_list, d_world, d_rand_state);
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
@@ -216,6 +224,9 @@ int main() {
   create_camera<<<1,1>>>(d_cam);
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
+
+  // reset the stack size
+  cudaThreadSetLimit(cudaLimitStackSize, 1024);
 
   std::cerr << "Rendering...";
 
@@ -229,7 +240,7 @@ int main() {
                               d_world,
                               d_rand_state,
                               d_cam,
-                              500       // number_samples
+                              10       // number_samples
                               );
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());

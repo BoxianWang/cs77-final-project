@@ -229,7 +229,7 @@ int main() {
                               d_world,
                               d_rand_state,
                               d_cam,
-                              500       // number_samples
+                              10       // number_samples
                               );
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());

@@ -13,14 +13,28 @@ class sphere : public hittable {
   public:
     __host__ __device__ sphere(point3 cen, float r, material* mat) : center(cen), radius(r), mat_ptr(mat) {};
 
+    __device__ bool bounding_box(float time0, float time1, aabb& output_box) const override;
+
     __device__ bool hit(
         const ray& r, float t_min, float t_max, hit_record& rec) const override;
 
-  public:
+    __device__ void print(int depth) override {
+        printf("{center: (%f,%f,%f), radius: %f}\n", center.x(), center.y(), center.z(), radius);
+    }
+
+    public:
     point3 center;
     float radius;
     material* mat_ptr;
 };
+
+// bounding box is bounded by the most extreme corners
+__device__ bool sphere::bounding_box(float time0, float time1, aabb& output_box) const {
+  output_box = aabb(
+      center - vec3(radius, radius, radius),
+      center + vec3(radius, radius, radius));
+  return true;
+}
 
 __device__ bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec) const {
   vec3 oc = r.origin() - center;
