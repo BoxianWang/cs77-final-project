@@ -53,19 +53,7 @@ __device__ bool hittable_list::hit(const ray& r, float t_min, float t_max, hit_r
 __device__ bool hittable_list::bounding_box(float time0, float time1, aabb& output_box) const {
   if (objectNumber == 0) return false;
 
-  aabb temp_box;
-  bool first_box = true;
-
-  for (int i = 0; i < objectNumber; i++) {
-    if (!objects[i]->bounding_box(time0, time1, temp_box)) {
-      return false;
-    }
-    // if it's the first box, just store that; otherwise take the union
-    output_box = first_box ? temp_box : surrounding_box(output_box, temp_box);
-    first_box = false;
-  }
-
-  return true;
+  return node->bounding_box(time0, time1, output_box);
 }
 
 #endif //CUDA_HITTABLE_LIST_CUH

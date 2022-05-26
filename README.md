@@ -23,5 +23,6 @@ This executable is built in `./cuda/cmake-build-debug` and called `inOneWeekendF
 
 
 ### CUDA (using tree-based acceleration datastructures)
-This executable is built in `./cuda/cmake-build-debug` and called `inOneWeekendTree`
+This executable is built in `./cuda/cmake-build-debug` and called `theNextWeekTree`
 0.490523 seconds (A little slower...)
+This is in large part because the simpler, non-recursive hit strategy required fewer registers and allowed for higher occupancy on the GPU (46% vs 38%)
