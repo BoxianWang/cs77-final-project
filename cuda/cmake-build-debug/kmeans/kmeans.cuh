@@ -101,6 +101,7 @@ __global__ hittable_list** k_cluster(hittable **src_objects, int num_buckets, in
         }
 
         buckets = new_buckets;
+        iters++;
     }
 
     printf("Clustering complete...\n");
