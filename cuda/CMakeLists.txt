@@ -8,6 +8,7 @@ add_executable(inOneWeekend ./inOneWeekend/main.cu)
 add_executable(inOneWeekendFloats ./inOneWeekendFloats/main.cu)
 add_executable(theNextWeekTree ./theNextWeek/tree/main.cu)
 
+set(CMAKE_CUDA_FLAGS "--use_fast_math -O3 -Xptxas -O3, -Xcompiler -O3")
 target_compile_options(cuda PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-gencode arch=compute_37,code=sm_37>)
 target_compile_options(inOneWeekend PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-gencode arch=compute_37,code=sm_37>)
 target_compile_options(inOneWeekendFloats PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-gencode arch=compute_37,code=sm_37>)

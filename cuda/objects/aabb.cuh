@@ -31,6 +31,11 @@ class aabb {
       return true;
     }
 
+    __device__ float volume() {
+      vec3 diagonal = maximum - minimum;
+      return fabsf(diagonal.x() * diagonal.y() * diagonal.z());
+    }
+
   public:
     point3 minimum;
     point3 maximum;
