@@ -38,28 +38,28 @@ class bvh_node : public hittable {
 };
 
 __device__ void bvh_node::print(int depth) {
-  printf("{\n");
-  for (int i = 0; i < depth+1; i++) {
-    printf(" ");
-  }
-  printf("volume: %f\n", box.volume());
+  // printf("{\n");
+  // for (int i = 0; i < depth+1; i++) {
+  //   printf(" ");
+  // }
+  // printf("volume: %f\n", box.volume());
 
-  for (int i = 0; i < depth+1; i++) {
-    printf(" ");
-  }
-  printf("left: ");
-  left->print(depth+1);
+  // for (int i = 0; i < depth+1; i++) {
+  //   printf(" ");
+  // }
+  // printf("left: ");
+  // left->print(depth+1);
 
-  for (int i = 0; i < depth+1; i++) {
-    printf(" ");
-  }
-  printf("right: ");
-  right->print(depth+1);
+  // for (int i = 0; i < depth+1; i++) {
+  //   printf(" ");
+  // }
+  // printf("right: ");
+  // right->print(depth+1);
 
-  for (int i = 0; i < depth; i++) {
-    printf(" ");
-  }
-  printf("},\n");
+  // for (int i = 0; i < depth; i++) {
+  //   printf(" ");
+  // }
+  // printf("},\n");
 }
 
 __device__ bool bvh_node::bounding_box(float time0, float time1, aabb& output_box) const {
@@ -139,12 +139,13 @@ __device__ bvh_node::bvh_node(
   float bestVolumeSum;
 
   // check over all axes
-  for (int axis = 0; axis < 3; axis++ ) {
+  //for (int axis = 0; axis < 3; axis++ ) {
+    int axis = random_int(rand_state, 0, 2);
     auto comparator = (axis == 0) ? box_x_compare
                                   : (axis == 1) ? box_y_compare
                                                 : box_z_compare;
 
-    printf("Iteration: %d\n", axis);
+   //printf("Iteration: %d\n", axis);
 
     // span --> 1 more than sub because it's inclusive
     size_t object_span = end - start;
@@ -183,21 +184,21 @@ __device__ bvh_node::bvh_node(
       box_right = box_left;
     }
     aabb tempBox = surrounding_box(box_left, box_right);
-    if (axis == 0) {
+    //if (axis == 0) {
       box = tempBox;
       left = tempLeft;
       right = tempRight;
-      bestVolumeSum = box_left.volume() + box_right.volume();
-    } else {
-      float newVol = box_left.volume() + box_right.volume();
-      if (newVol < bestVolumeSum) {
-        box = tempBox;
-        left = tempLeft;
-        right = tempRight;
-        bestVolumeSum = newVol;
-      }
-    }
-  }
+     // bestVolumeSum = box_left.volume() + box_right.volume();
+    // } else {
+    //   float newVol = box_left.volume() + box_right.volume();
+    //   if (newVol < bestVolumeSum) {
+    //     box = tempBox;
+    //     left = tempLeft;
+    //     right = tempRight;
+    //     bestVolumeSum = newVol;
+    //   }
+    // }
+  //}
 }
 
 #endif //CUDA_BVH_NODE_CUH

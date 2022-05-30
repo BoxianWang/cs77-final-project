@@ -58,9 +58,9 @@ __global__ void create_world(hittable **d_list, hittable **d_world, curandState 
             // diffuse
             auto albedo = vec3_random(local_rand_state) * vec3_random(local_rand_state);
             sphere_material = new lambertian(albedo);
-//            vec3 center2 = center + vec3(0.f, random_float(local_rand_state, 0.f, .5f), 0.f);
-//            d_list[sphereNum++] = new moving_sphere(center, center2, 0., 1., 0.2, sphere_material);
-            d_list[sphereNum++] = new sphere(center, 0.2, sphere_material);
+            vec3 center2 = center + vec3(0.f, random_float(local_rand_state, 0.f, .5f), 0.f);
+            d_list[sphereNum++] = new moving_sphere(center, center2, 0., 1., 0.2, sphere_material);
+            //d_list[sphereNum++] = new sphere(center, 0.2, sphere_material);
           } else if (choose_mat < 0.95) {
             // metal
             auto albedo = vec3_random(local_rand_state, 0.5, 1);
@@ -260,7 +260,7 @@ int main() {
       int ir = int(255.99*r);
       int ig = int(255.99*g);
       int ib = int(255.99*b);
-//      std::cout << ir << " " << ig << " " << ib << "\n";
+      std::cout << ir << " " << ig << " " << ib << "\n";
     }
   }
   // clean up

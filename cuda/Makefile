@@ -60,7 +60,7 @@ EQUALS = =
 CMAKE_SOURCE_DIR = /dartfs-hpc/rc/home/c/f003k4c/cs77-final-project/cuda
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /dartfs-hpc/rc/home/c/f003k4c/cs77-final-project/cuda/cmake-build-debug
+CMAKE_BINARY_DIR = /dartfs-hpc/rc/home/c/f003k4c/cs77-final-project/cuda
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -78,7 +78,7 @@ rebuild_cache/fast: rebuild_cache
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake cache editor..."
-	/dartfs-hpc/admin/opt/el7/cmake/3.21.2/bin/ccmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/usr/bin/ccmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -87,9 +87,9 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /dartfs-hpc/rc/home/c/f003k4c/cs77-final-project/cuda/cmake-build-debug/CMakeFiles /dartfs-hpc/rc/home/c/f003k4c/cs77-final-project/cuda/cmake-build-debug//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /dartfs-hpc/rc/home/c/f003k4c/cs77-final-project/cuda/CMakeFiles /dartfs-hpc/rc/home/c/f003k4c/cs77-final-project/cuda//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /dartfs-hpc/rc/home/c/f003k4c/cs77-final-project/cuda/cmake-build-debug/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /dartfs-hpc/rc/home/c/f003k4c/cs77-final-project/cuda/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -115,19 +115,6 @@ preinstall/fast:
 depend:
 	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
-
-#=============================================================================
-# Target rules for targets named kmeans
-
-# Build rule for target.
-kmeans: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 kmeans
-.PHONY : kmeans
-
-# fast build rule for target.
-kmeans/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/kmeans.dir/build.make CMakeFiles/kmeans.dir/build
-.PHONY : kmeans/fast
 
 #=============================================================================
 # Target rules for targets named cuda
@@ -229,30 +216,6 @@ inOneWeekendFloats/main.cu.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/inOneWeekendFloats.dir/build.make CMakeFiles/inOneWeekendFloats.dir/inOneWeekendFloats/main.cu.s
 .PHONY : inOneWeekendFloats/main.cu.s
 
-kmeans/main.o: kmeans/main.cu.o
-.PHONY : kmeans/main.o
-
-# target to build an object file
-kmeans/main.cu.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/kmeans.dir/build.make CMakeFiles/kmeans.dir/kmeans/main.cu.o
-.PHONY : kmeans/main.cu.o
-
-kmeans/main.i: kmeans/main.cu.i
-.PHONY : kmeans/main.i
-
-# target to preprocess a source file
-kmeans/main.cu.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/kmeans.dir/build.make CMakeFiles/kmeans.dir/kmeans/main.cu.i
-.PHONY : kmeans/main.cu.i
-
-kmeans/main.s: kmeans/main.cu.s
-.PHONY : kmeans/main.s
-
-# target to generate assembly for a file
-kmeans/main.cu.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/kmeans.dir/build.make CMakeFiles/kmeans.dir/kmeans/main.cu.s
-.PHONY : kmeans/main.cu.s
-
 main.o: main.cu.o
 .PHONY : main.o
 
@@ -312,7 +275,6 @@ help:
 	@echo "... cuda"
 	@echo "... inOneWeekend"
 	@echo "... inOneWeekendFloats"
-	@echo "... kmeans"
 	@echo "... theNextWeekTree"
 	@echo "... inOneWeekend/main.o"
 	@echo "... inOneWeekend/main.i"
@@ -320,9 +282,6 @@ help:
 	@echo "... inOneWeekendFloats/main.o"
 	@echo "... inOneWeekendFloats/main.i"
 	@echo "... inOneWeekendFloats/main.s"
-	@echo "... kmeans/main.o"
-	@echo "... kmeans/main.i"
-	@echo "... kmeans/main.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
