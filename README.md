@@ -1,5 +1,32 @@
-# cs77-final-project
-CUDA/C++ ray tracer
+# GROUP 7
+## Elliot Potter, Boxian Wang, Eric (Spencer) Warezak
+## CUDA/C++ ray tracer
+
+## ===========CODE STRUCTURE============
+1. All CUDA code is in the `/cuda` directory.
+2. All C++ code is in the `cpp` directory
+3. Compilation instructions for cuda can be found in the README of the `/cuda` directory.
+4. CUDA executables are built into the `cuda/cmake-build-debug` directory
+	a. `inOneWeekend`: basic rendering of the final scene of the first book
+	b. `inOneWeekendFloat`: the same thing, at 1/3 the time
+	c. `inOneWeekendTree`: implements motion blur and tree-based object collisions
+	d. `inOneWeekendSmarterTree`: the same thing, except the tree builder attempts
+		to minimize the volume of each layer of the tree.
+5. Each CUDA executable is backed by a directory. They have the following structure:
+	a. `materials` is a directory of classes that extend `material`
+	b. `objects` is a directory of classes that can be collided with, though they 
+		don't all extend "hittable"
+	c. a `camera` class
+	d. a `randoms` class
+	e. a `ray` class
+	d. main, which contains:
+		i. Error handling functions
+		ii. Functions to create and delete the world (in some cases creating
+			the tree that backs the world)
+		iii. Functions to create and delete the camera
+		iv. Functions to actually manage tracing the ray
+		v. The main function, which allocates memory and manages all the GPU-CPU
+			interactions
 
 ## ==============WORK DONE==============
 ### Work that is entirely our own:
