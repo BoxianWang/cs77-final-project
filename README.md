@@ -20,9 +20,14 @@ This executable is built in `./cuda/cmake-build-debug` and called `inOneWeekend`
 ### CUDA (using "Raytracing In One Weekend" refactored to use only floats)
 This executable is built in `./cuda/cmake-build-debug` and called `inOneWeekendFloat`.
 0.424923 seconds (More than 3x faster than using mixed floats and doubles!)
-
+Larger scene: 1.52617 seconds
 
 ### CUDA (using tree-based acceleration datastructures)
 This executable is built in `./cuda/cmake-build-debug` and called `theNextWeekTree`
 0.490523 seconds (A little slower...)
 This is in large part because the simpler, non-recursive hit strategy required fewer registers and allowed for higher occupancy on the GPU (46% vs 38%)
+Larger scene: 0.633864 seconds
+
+### CUDA (using intelligent xyz trees)
+0.390624 seconds (A little faster...)
+Larger scene: 0.597435 seconds

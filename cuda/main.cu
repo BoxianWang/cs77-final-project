@@ -80,6 +80,54 @@ __global__ void create_world(hittable **d_list, hittable **d_world, curandState 
   }
 }
 
+__global__ void create_bigger_world(hittable **d_list, hittable **d_world, curandState *rand_state) {
+  if (threadIdx.x == 0 && blockIdx.x == 0) {
+    curandState* local_rand_state = rand_state;
+    auto material_ground = new lambertian(vec3(0.5, 0.5, 0.5));
+    auto material_1   = new dielectric(1.5);
+    auto material_2 = new lambertian(vec3(0.4, 0.2, 0.1));
+    auto material_3  = new metal(vec3(0.7, 0.6, 0.5), 0.);
+
+    int sphereNum = 0;
+    d_list[sphereNum++] = new sphere(vec3(0,-1000,0), 1000, material_ground);
+    d_list[sphereNum++] = new sphere(vec3(0, 1, 0), 1, material_1);
+    d_list[sphereNum++] = new sphere(vec3(-4, 1, 0), 1, material_2);
+    d_list[sphereNum++] = new sphere(vec3(4, 1, 0), 1, material_3);
+
+    for (int a = -22; a < 22; a++) {
+      for (int b = -22; b < 22; b++) {
+        float choose_mat = random_float(local_rand_state);
+        point3 center(float(a)/1.5 + 0.f*random_float(local_rand_state), 0.2f, float(b)/1.5 + 0.45f*random_float(local_rand_state));
+
+        if ((center - point3(4, 0.2, 0)).length() > 0.9) {
+          material* sphere_material;
+
+          if (choose_mat < 0.8) {
+            // diffuse
+            auto albedo = vec3_random(local_rand_state) * vec3_random(local_rand_state);
+            sphere_material = new lambertian(albedo);
+//            vec3 center2 = center + vec3(0.f, random_float(local_rand_state, 0.f, .5f), 0.f);
+//            d_list[sphereNum++] = new moving_sphere(center, center2, 0., 1., 0.2, sphere_material);
+            d_list[sphereNum++] = new sphere(center, 0.15, sphere_material);
+          } else if (choose_mat < 0.95) {
+            // metal
+            auto albedo = vec3_random(local_rand_state, 0.5, 1);
+            auto fuzz = random_float(local_rand_state, 0, 0.5);
+            sphere_material = new metal(albedo, fuzz);
+            d_list[sphereNum++] = new sphere(center, 0.15, sphere_material);
+          } else {
+            // glass
+            sphere_material = new dielectric(1.5);
+            d_list[sphereNum++] = new sphere(center, 0.15, sphere_material);
+          }
+        }
+      }
+    }
+
+    *d_world = new hittable_list(d_list, sphereNum, local_rand_state);
+  }
+}
+
 // cleans up the world
 __global__ void free_world(hittable **d_list, hittable **d_world) {
   int objectNumber = (*d_world)->getObjectNumber();
@@ -209,14 +257,28 @@ int main() {
 
   // generate the world
   hittable **d_list;
-  checkCudaErrors(cudaMalloc((void **)&d_list, 488*sizeof(hittable *)));
-  checkCudaErrors(cudaDeviceSynchronize());
   hittable **d_world;
-  checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(hittable *)));
-  checkCudaErrors(cudaDeviceSynchronize());
-  create_world<<<1,1>>>(d_list, d_world, d_rand_state);
-  checkCudaErrors(cudaGetLastError());
-  checkCudaErrors(cudaDeviceSynchronize());
+  bool biggerWorld = true;
+
+  if (biggerWorld) {
+    checkCudaErrors(cudaMalloc((void **)&d_list, 1956*sizeof(hittable *)));
+    checkCudaErrors(cudaDeviceSynchronize());
+    checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(hittable *)));
+    checkCudaErrors(cudaDeviceSynchronize());
+    create_bigger_world<<<1,1>>>(d_list, d_world, d_rand_state);
+    checkCudaErrors(cudaGetLastError());
+    checkCudaErrors(cudaDeviceSynchronize());
+  }
+
+  else {
+    checkCudaErrors(cudaMalloc((void **)&d_list, 488*sizeof(hittable *)));
+    checkCudaErrors(cudaDeviceSynchronize());
+    checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(hittable *)));
+    checkCudaErrors(cudaDeviceSynchronize());
+    create_world<<<1,1>>>(d_list, d_world, d_rand_state);
+    checkCudaErrors(cudaGetLastError());
+    checkCudaErrors(cudaDeviceSynchronize());
+  }
 
   // generate the camera
   camera **d_cam;
