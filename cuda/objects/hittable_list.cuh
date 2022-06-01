@@ -16,7 +16,7 @@ class hittable_list : public hittable {
       objects = objs;
       objectNumber = numObjects;
       node = new bvh_node(objs, 0, numObjects, time0, time1, rand_state);
-      node->print(0);
+//      node->print(0);
     }
 
     // does a ray hit the object?

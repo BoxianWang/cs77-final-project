@@ -47,6 +47,11 @@ __device__ void bvh_node::print(int depth) {
   for (int i = 0; i < depth+1; i++) {
     printf(" ");
   }
+  printf("number objects: %ld\n", size);
+
+  for (int i = 0; i < depth+1; i++) {
+    printf(" ");
+  }
   printf("left: ");
   left->print(depth+1);
 
@@ -120,13 +125,42 @@ __device__ void sort (hittable** objects, size_t start, size_t end, bool (*compa
     // that are greater than key, to one
     // position ahead of their
     // current position
-    while (j >= 0 && comparator(carried, objects[j]))
+    while (j >= start && comparator(carried, objects[j]))
     {
       objects[j + 1] = objects[j];
       j = j - 1;
     }
     objects[j + 1] = carried;
   }
+}
+
+__device__ float getBoundingVolume(hittable** objects, size_t start, size_t end) {
+  aabb box;
+  objects[start]->bounding_box(0,0, box);
+  vec3 highestPoint = vec3(box.max().x(), box.max().y(), box.max().z());
+  vec3 lowestPoint = vec3(box.min().x(), box.min().y(), box.min().z());
+
+//  objects[start]->print(0);
+
+  for (int i = start+1; i < end; i++) {
+    objects[i]->bounding_box(0,0, box);
+
+    highestPoint = vec3(
+        (highestPoint.x() > box.max().x()) ? highestPoint.x() : box.max().x(),
+        (highestPoint.y() > box.max().y()) ? highestPoint.y() : box.max().y(),
+        (highestPoint.z() > box.max().z()) ? highestPoint.z() : box.max().z()
+        );
+
+    lowestPoint = vec3(
+        (lowestPoint.x() < box.min().x()) ? lowestPoint.x() : box.min().x(),
+        (lowestPoint.y() < box.min().y()) ? lowestPoint.y() : box.min().y(),
+        (lowestPoint.z() < box.min().z()) ? lowestPoint.z() : box.min().z()
+    );
+
+//    objects[i]->print(0);
+  }
+
+  return (highestPoint.x()-lowestPoint.x()) * (highestPoint.y()-lowestPoint.y()) * (highestPoint.z()-lowestPoint.z());
 }
 
 // recursively subdivides the src_objects array
@@ -137,6 +171,10 @@ __device__ bvh_node::bvh_node(
     size_t start, size_t end, float time0, float time1, curandState *rand_state
 ) {
   float bestVolumeSum;
+  int bestAxis;
+
+  size_t object_span = end - start;
+  size = object_span;
 
   // check over all axes
   for (int axis = 0; axis < 3; axis++ ) {
@@ -144,60 +182,53 @@ __device__ bvh_node::bvh_node(
                                   : (axis == 1) ? box_y_compare
                                                 : box_z_compare;
 
-    printf("Iteration: %d\n", axis);
+    sort(objects, start, end, comparator);
+    auto mid = start + object_span/2;
+//    printf("Sorting...\n");
+    float volumeSum = getBoundingVolume(objects, start, mid) + getBoundingVolume(objects, mid, end);
+//    printf("Sorted...\n\n");
 
-    // span --> 1 more than sub because it's inclusive
-    size_t object_span = end - start;
-    hittable* tempLeft;
-    hittable* tempRight;
-
-    // TODO -- execute ALL THREE axes, choose the one that minimizes volume sum
-    if (object_span == 1) {
-      tempLeft = tempRight = objects[start];
-    } else if (object_span == 2) {
-      if (comparator(objects[start], objects[start+1])) {
-        tempLeft = objects[start];
-        tempRight = objects[start+1];
-      } else {
-        tempLeft = objects[start+1];
-        tempRight = objects[start];
-      }
-      // more than 2 objects
-    } else {
-      // sort over the array
-      sort(objects, start, end, comparator);
-      // cut the array in half
-      auto mid = start + object_span/2;
-      tempLeft = new bvh_node(objects, start, mid, time0, time1, rand_state);
-      tempRight = new bvh_node(objects, mid, end, time0, time1, rand_state);
-    }
-
-    aabb box_left, box_right;
-    // call bounding_box to retrieve box_left, box_right
-    bool isLeft = tempLeft->bounding_box (time0, time1, box_left);
-    bool isRight = tempRight->bounding_box(time0, time1, box_right);
-    if (!isLeft) {
-      box_left = box_right;
-    }
-    if (!isRight) {
-      box_right = box_left;
-    }
-    aabb tempBox = surrounding_box(box_left, box_right);
-    if (axis == 0) {
-      box = tempBox;
-      left = tempLeft;
-      right = tempRight;
-      bestVolumeSum = box_left.volume() + box_right.volume();
-    } else {
-      float newVol = box_left.volume() + box_right.volume();
-      if (newVol < bestVolumeSum) {
-        box = tempBox;
-        left = tempLeft;
-        right = tempRight;
-        bestVolumeSum = newVol;
-      }
+    if (axis == 0 || volumeSum < bestVolumeSum) {
+      bestAxis = axis;
+      bestVolumeSum = volumeSum;
     }
   }
+  auto comparator = (bestAxis == 0) ? box_x_compare
+                                : (bestAxis == 1) ? box_y_compare
+                                              : box_z_compare;
+  sort(objects, start, end, comparator);
+
+  if (object_span == 1) {
+    left = right = objects[start];
+  } else if (object_span == 2) {
+    if (comparator(objects[start], objects[start+1])) {
+      left = objects[start];
+      right = objects[start+1];
+    } else {
+      left = objects[start+1];
+      right = objects[start];
+    }
+    // more than 2 objects
+  } else {
+    // sort over the array
+    sort(objects, start, end, comparator);
+    // cut the array in half
+    auto mid = start + object_span/2;
+    left = new bvh_node(objects, start, mid, time0, time1, rand_state);
+    right = new bvh_node(objects, mid, end, time0, time1, rand_state);
+  }
+
+  aabb box_left, box_right;
+  // call bounding_box to retrieve box_left, box_right
+  bool isLeft = left->bounding_box (time0, time1, box_left);
+  bool isRight = right->bounding_box(time0, time1, box_right);
+  if (!isLeft) {
+    box_left = box_right;
+  }
+  if (!isRight) {
+    box_right = box_left;
+  }
+  box = surrounding_box(box_left, box_right);
 }
 
 #endif //CUDA_BVH_NODE_CUH

@@ -260,7 +260,7 @@ int main() {
       int ir = int(255.99*r);
       int ig = int(255.99*g);
       int ib = int(255.99*b);
-//      std::cout << ir << " " << ig << " " << ib << "\n";
+      std::cout << ir << " " << ig << " " << ib << "\n";
     }
   }
   // clean up

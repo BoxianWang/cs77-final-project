@@ -52,7 +52,7 @@ class camera {
       return ray(
           origin+offset,
           lower_left_corner + u_r*horizontal + v_r*vertical - origin - offset,
-          random_float(rand_state, time0, time1)
+          time0 == time1 ? time0 : random_float(rand_state, time0, time1)
           );
     }
 
