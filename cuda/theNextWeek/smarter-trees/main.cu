@@ -280,7 +280,6 @@ int main() {
     checkCudaErrors(cudaDeviceSynchronize());
   }
 
-
   // generate the camera
   camera **d_cam;
   checkCudaErrors(cudaMalloc((void **)&d_cam, sizeof(camera*)));
