@@ -228,6 +228,7 @@ int main() {
   std::cerr << nx << " by " << ny << " image\n";
 
   size_t size = 0;
+  // we need to increase the stack size, so we don't blow it while generating the world.
   cudaThreadSetLimit(cudaLimitStackSize, 4096);
   cudaThreadGetLimit(&size, cudaLimitStackSize);
   std::cerr << "STACK SIZE: " << size << std::endl;
