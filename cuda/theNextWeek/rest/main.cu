@@ -467,8 +467,8 @@ int main() {
     num_samples = 200;
     break;
   }
-checkCudaErrors(cudaGetLastError());
-checkCudaErrors(cudaDeviceSynchronize());
+  checkCudaErrors(cudaGetLastError());
+  checkCudaErrors(cudaDeviceSynchronize());
 
       // generate the camera
     

@@ -112,10 +112,10 @@ __device__ void sort (hittable** objects, size_t start, size_t end, bool (*compa
     j = i - 1;
 
     // Move elements of arr[0..i-1],
-    // that are greater than key, to one
+    // that are greater than key, to ones
     // position ahead of their
     // current position
-    while (j >= 0 && comparator(carried, objects[j]))
+    while (j >= start && comparator(carried, objects[j]))
     {
       objects[j + 1] = objects[j];
       j = j - 1;
