@@ -16,6 +16,9 @@ class hittable {
       return 0;
     }
     __device__ virtual bool bounding_box(float time0, float time1, aabb& output_box) const = 0;
+    __device__ virtual bool isNode() {
+      return false;
+    }
 
     __device__ virtual void print(int depth) {
       printf("0\n");

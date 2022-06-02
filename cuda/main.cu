@@ -259,7 +259,7 @@ int main() {
   // generate the world
   hittable **d_list;
   hittable **d_world;
-  bool biggerWorld = true;
+  bool biggerWorld = false;
 
   if (biggerWorld) {
     checkCudaErrors(cudaMalloc((void **)&d_list, 1956*sizeof(hittable *)));

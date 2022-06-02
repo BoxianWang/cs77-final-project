@@ -14,7 +14,12 @@ class bvh_node : public hittable {
 
     __device__ bvh_node(
         hittable** src_objects,
-        size_t start, size_t end, float time0, float time1, curandState *rand_state);
+        size_t start, size_t end,
+        float time0, float time1,
+        curandState *rand_state,
+        bvh_node* nodeParent,
+        bool hasParent
+      );
 
     __device__ virtual bool hit(
         const ray& r, float t_min, float t_max, hit_record& rec) const override;
@@ -25,7 +30,11 @@ class bvh_node : public hittable {
 
     __device__ void print(int depth) override;
 
-//    __device__ ~bvh_node() {
+    __device__ bool isNode() override {
+      return true;
+    };
+
+  //    __device__ ~bvh_node() {
 //      delete left;
 //      delete right;
 //    }
@@ -33,6 +42,8 @@ class bvh_node : public hittable {
   public:
     hittable* left;
     hittable* right;
+    bvh_node* parent;
+    bool hasParent = false;
     unsigned long size;
     aabb box;
 };
@@ -72,6 +83,9 @@ __device__ bool bvh_node::bounding_box(float time0, float time1, aabb& output_bo
   return true;
 }
 
+// only recurses on the left
+// avoids recursion to be friendlier to the stack and cache
+// TODO -- not working yet -- use https://developer.nvidia.com/thrust and https://www.techiedelight.com/inorder-tree-traversal-iterative-recursive/
 __device__ bool bvh_node::hit(const ray& r, float t_min, float t_max, hit_record& rec) const {
   // exit early if we miss the box
   if (!box.hit(r, t_min, t_max)) {
@@ -84,6 +98,104 @@ __device__ bool bvh_node::hit(const ray& r, float t_min, float t_max, hit_record
 
   return hit_left || hit_right;
 }
+//  bvh_node* currNode = const_cast<bvh_node *>(this);
+//  aabb currBox;
+//  bool didHitAny = false;
+//  int depth = 0;
+//
+//  while (true) {
+//    currNode->bounding_box(t_min, t_max, currBox);
+//
+//    // exit early if we miss the box
+//    if (!box.hit(r, t_min, t_max)) {
+//      break;
+//    }
+//
+////    printf("%d\n", depth);
+//
+//    // actually recurse left
+//    bool didHitTemp = currNode->left->hit(r, t_min, t_max, rec);
+//    didHitAny = didHitAny || didHitTemp;
+//    // decrease t_max if needed
+//    t_max = (didHitTemp && (rec.t < t_max)) ? rec.t : t_max;
+//
+//    // don't bother with the right if it's a duplicate
+//    if (currNode->left != currNode->right) {
+//      // if is a node, loop down a level
+//      if (currNode->right->isNode()) {
+//        depth++;
+//        currNode = (bvh_node *)(currNode->right);
+//        continue;
+//      }
+//      // if not, hit the object, return if we hit anything
+//      else {
+//        didHitTemp = currNode->right->hit(r, t_min, t_max, rec);
+//        didHitAny = didHitAny || didHitTemp;
+//        break;
+//      }
+//    }
+//    else {
+//      break;
+//    }
+//  }
+//  return didHitAny;
+//}
+//  auto currNode = const_cast<bvh_node *>(this);
+//  aabb currBox;
+//  bool didHitAny = false;
+//  bool didHitTemp;
+//
+//  while (true) {
+//    currNode->bounding_box(t_min, t_max, currBox);
+//    // go up a level if we miss the box -- if we can't, then end the program
+//    // we don't "continue" because we already checked box intersection of the top
+//    if (!box.hit(r, t_min, t_max)) {
+//      if (currNode->hasParent) {
+//        currNode = currNode->parent;
+//      } else {
+//        break;
+//      }
+//    }
+//
+//    // if the left is a node, recurse left
+//    if (currNode->left->isNode()) {
+//      currNode = (bvh_node*)currNode->left;
+//      continue;
+//    }
+//    // otherwise, try to hit the object with the ray
+//    else {
+//      didHitTemp = currNode->left->hit(r, t_min, t_max, rec);
+//      didHitAny = didHitAny || didHitTemp;
+//      // decrease t_max if needed
+//      t_max = (didHitTemp && (rec.t < t_max)) ? rec.t : t_max;
+//    }
+//
+//    // if right and left pointers are the same, skip calculating duplicates!
+//    if (currNode->right != currNode->left) {
+//      // if the right is a node, recurse right
+//      if (currNode->right->isNode()) {
+//        currNode = (bvh_node*)currNode->right;
+//        continue;
+//      }
+//        // otherwise, try to hit the object with the ray
+//      else {
+//        didHitTemp = currNode->right->hit(r, t_min, t_max, rec);
+//        didHitAny = didHitAny || didHitTemp;
+//        // decrease t_max if needed
+//        t_max = (didHitTemp && (rec.t < t_max)) ? rec.t : t_max;
+//      }
+//    }
+//
+//    // go up a level if we still can
+//    if (currNode->hasParent) {
+//      currNode = currNode->parent;
+//    } else {
+//      break;
+//    }
+//  }
+//
+//  return didHitAny;
+//}
 
 __device__ inline bool box_compare(const hittable* a, const hittable* b, int axis) {
   aabb box_a;
@@ -168,13 +280,22 @@ __device__ float getBoundingVolume(hittable** objects, size_t start, size_t end)
 // start is inclusive, end is exclusive
 __device__ bvh_node::bvh_node(
     hittable** objects,
-    size_t start, size_t end, float time0, float time1, curandState *rand_state
+    size_t start, size_t end,
+    float time0, float time1,
+    curandState *rand_state,
+    bvh_node* nodeParent,
+    bool hasNodeParent
 ) {
   float bestVolumeSum;
   int bestAxis;
 
   size_t object_span = end - start;
   size = object_span;
+
+  if (hasNodeParent) {
+    parent = nodeParent;
+    hasParent = hasNodeParent;
+  }
 
   // check over all axes
   for (int axis = 0; axis < 3; axis++ ) {
@@ -214,8 +335,19 @@ __device__ bvh_node::bvh_node(
     sort(objects, start, end, comparator);
     // cut the array in half
     auto mid = start + object_span/2;
-    left = new bvh_node(objects, start, mid, time0, time1, rand_state);
-    right = new bvh_node(objects, mid, end, time0, time1, rand_state);
+    if (mid-start == 1) {
+      left = objects[start];
+    }
+    else {
+      left = new bvh_node(objects, start, mid, time0, time1, rand_state, this, true);
+    }
+
+    if (end-mid == 1) {
+      right = objects[mid];
+    }
+    else {
+      right = new bvh_node(objects, mid, end, time0, time1, rand_state, this, true);
+    }
   }
 
   aabb box_left, box_right;
