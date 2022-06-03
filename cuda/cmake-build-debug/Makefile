@@ -77,8 +77,8 @@ rebuild_cache/fast: rebuild_cache
 
 # Special rule for the target edit_cache
 edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/home/smooth_operator/programs/CLion/bin/cmake/linux/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake cache editor..."
+	/home/smooth_operator/programs/CLion/bin/cmake/linux/bin/ccmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -115,19 +115,6 @@ preinstall/fast:
 depend:
 	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
-
-#=============================================================================
-# Target rules for targets named theNextWeekTreeUnrolled
-
-# Build rule for target.
-theNextWeekTreeUnrolled: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 theNextWeekTreeUnrolled
-.PHONY : theNextWeekTreeUnrolled
-
-# fast build rule for target.
-theNextWeekTreeUnrolled/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/theNextWeekTreeUnrolled.dir/build.make CMakeFiles/theNextWeekTreeUnrolled.dir/build
-.PHONY : theNextWeekTreeUnrolled/fast
 
 #=============================================================================
 # Target rules for targets named theNextWeekSmarterTree
@@ -327,30 +314,6 @@ theNextWeek/smarter-trees/main.cu.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/theNextWeekSmarterTree.dir/build.make CMakeFiles/theNextWeekSmarterTree.dir/theNextWeek/smarter-trees/main.cu.s
 .PHONY : theNextWeek/smarter-trees/main.cu.s
 
-theNextWeek/tree-unrolled/main.o: theNextWeek/tree-unrolled/main.cu.o
-.PHONY : theNextWeek/tree-unrolled/main.o
-
-# target to build an object file
-theNextWeek/tree-unrolled/main.cu.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/theNextWeekTreeUnrolled.dir/build.make CMakeFiles/theNextWeekTreeUnrolled.dir/theNextWeek/tree-unrolled/main.cu.o
-.PHONY : theNextWeek/tree-unrolled/main.cu.o
-
-theNextWeek/tree-unrolled/main.i: theNextWeek/tree-unrolled/main.cu.i
-.PHONY : theNextWeek/tree-unrolled/main.i
-
-# target to preprocess a source file
-theNextWeek/tree-unrolled/main.cu.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/theNextWeekTreeUnrolled.dir/build.make CMakeFiles/theNextWeekTreeUnrolled.dir/theNextWeek/tree-unrolled/main.cu.i
-.PHONY : theNextWeek/tree-unrolled/main.cu.i
-
-theNextWeek/tree-unrolled/main.s: theNextWeek/tree-unrolled/main.cu.s
-.PHONY : theNextWeek/tree-unrolled/main.s
-
-# target to generate assembly for a file
-theNextWeek/tree-unrolled/main.cu.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/theNextWeekTreeUnrolled.dir/build.make CMakeFiles/theNextWeekTreeUnrolled.dir/theNextWeek/tree-unrolled/main.cu.s
-.PHONY : theNextWeek/tree-unrolled/main.cu.s
-
 theNextWeek/tree/main.o: theNextWeek/tree/main.cu.o
 .PHONY : theNextWeek/tree/main.o
 
@@ -389,7 +352,6 @@ help:
 	@echo "... theNextWeekRest"
 	@echo "... theNextWeekSmarterTree"
 	@echo "... theNextWeekTree"
-	@echo "... theNextWeekTreeUnrolled"
 	@echo "... inOneWeekend/main.o"
 	@echo "... inOneWeekend/main.i"
 	@echo "... inOneWeekend/main.s"
@@ -405,9 +367,6 @@ help:
 	@echo "... theNextWeek/smarter-trees/main.o"
 	@echo "... theNextWeek/smarter-trees/main.i"
 	@echo "... theNextWeek/smarter-trees/main.s"
-	@echo "... theNextWeek/tree-unrolled/main.o"
-	@echo "... theNextWeek/tree-unrolled/main.i"
-	@echo "... theNextWeek/tree-unrolled/main.s"
 	@echo "... theNextWeek/tree/main.o"
 	@echo "... theNextWeek/tree/main.i"
 	@echo "... theNextWeek/tree/main.s"

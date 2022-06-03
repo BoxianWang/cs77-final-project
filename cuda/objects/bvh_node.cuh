@@ -94,7 +94,7 @@ __device__ bool bvh_node::hit(const ray& r, float t_min, float t_max, hit_record
   bool didHitTemp;
 
   // if the current node is null and stack is empty, we are done
-  while (stackLoc >= 0 && currNode != nullptr) {
+  while (stackLoc >= 0 || currNode != nullptr) {
     // if we don't hit the box, pop the stack
     if (!box.hit(r, t_min, t_max)) {
       // break if we get to the bottom of the stack
