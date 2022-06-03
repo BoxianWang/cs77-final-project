@@ -77,8 +77,8 @@ rebuild_cache/fast: rebuild_cache
 
 # Special rule for the target edit_cache
 edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake cache editor..."
-	/home/smooth_operator/programs/CLion/bin/cmake/linux/bin/ccmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
+	/home/smooth_operator/programs/CLion/bin/cmake/linux/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -167,6 +167,19 @@ theNextWeekTree: cmake_check_build_system
 theNextWeekTree/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/theNextWeekTree.dir/build.make CMakeFiles/theNextWeekTree.dir/build
 .PHONY : theNextWeekTree/fast
+
+#=============================================================================
+# Target rules for targets named theNextWeekUnrolled
+
+# Build rule for target.
+theNextWeekUnrolled: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 theNextWeekUnrolled
+.PHONY : theNextWeekUnrolled
+
+# fast build rule for target.
+theNextWeekUnrolled/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/theNextWeekUnrolled.dir/build.make CMakeFiles/theNextWeekUnrolled.dir/build
+.PHONY : theNextWeekUnrolled/fast
 
 #=============================================================================
 # Target rules for targets named inOneWeekend
@@ -338,6 +351,30 @@ theNextWeek/tree/main.cu.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/theNextWeekTree.dir/build.make CMakeFiles/theNextWeekTree.dir/theNextWeek/tree/main.cu.s
 .PHONY : theNextWeek/tree/main.cu.s
 
+theNextWeek/unrolled-supersampling/main.o: theNextWeek/unrolled-supersampling/main.cu.o
+.PHONY : theNextWeek/unrolled-supersampling/main.o
+
+# target to build an object file
+theNextWeek/unrolled-supersampling/main.cu.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/theNextWeekUnrolled.dir/build.make CMakeFiles/theNextWeekUnrolled.dir/theNextWeek/unrolled-supersampling/main.cu.o
+.PHONY : theNextWeek/unrolled-supersampling/main.cu.o
+
+theNextWeek/unrolled-supersampling/main.i: theNextWeek/unrolled-supersampling/main.cu.i
+.PHONY : theNextWeek/unrolled-supersampling/main.i
+
+# target to preprocess a source file
+theNextWeek/unrolled-supersampling/main.cu.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/theNextWeekUnrolled.dir/build.make CMakeFiles/theNextWeekUnrolled.dir/theNextWeek/unrolled-supersampling/main.cu.i
+.PHONY : theNextWeek/unrolled-supersampling/main.cu.i
+
+theNextWeek/unrolled-supersampling/main.s: theNextWeek/unrolled-supersampling/main.cu.s
+.PHONY : theNextWeek/unrolled-supersampling/main.s
+
+# target to generate assembly for a file
+theNextWeek/unrolled-supersampling/main.cu.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/theNextWeekUnrolled.dir/build.make CMakeFiles/theNextWeekUnrolled.dir/theNextWeek/unrolled-supersampling/main.cu.s
+.PHONY : theNextWeek/unrolled-supersampling/main.cu.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -352,6 +389,7 @@ help:
 	@echo "... theNextWeekRest"
 	@echo "... theNextWeekSmarterTree"
 	@echo "... theNextWeekTree"
+	@echo "... theNextWeekUnrolled"
 	@echo "... inOneWeekend/main.o"
 	@echo "... inOneWeekend/main.i"
 	@echo "... inOneWeekend/main.s"
@@ -370,6 +408,9 @@ help:
 	@echo "... theNextWeek/tree/main.o"
 	@echo "... theNextWeek/tree/main.i"
 	@echo "... theNextWeek/tree/main.s"
+	@echo "... theNextWeek/unrolled-supersampling/main.o"
+	@echo "... theNextWeek/unrolled-supersampling/main.i"
+	@echo "... theNextWeek/unrolled-supersampling/main.s"
 .PHONY : help
 
 
