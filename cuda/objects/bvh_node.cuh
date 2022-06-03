@@ -83,119 +83,68 @@ __device__ bool bvh_node::bounding_box(float time0, float time1, aabb& output_bo
   return true;
 }
 
-// only recurses on the left
-// avoids recursion to be friendlier to the stack and cache
-// TODO -- not working yet -- use https://developer.nvidia.com/thrust and https://www.techiedelight.com/inorder-tree-traversal-iterative-recursive/
+// Avoids actual recursion and manages an explicit cache instead
+// Uses https://www.techiedelight.com/inorder-tree-traversal-iterative-recursive/
 __device__ bool bvh_node::hit(const ray& r, float t_min, float t_max, hit_record& rec) const {
-  // exit early if we miss the box
-  if (!box.hit(r, t_min, t_max)) {
-    return false;
+  // create stack of pointers to hittable
+  bvh_node* stack[64];
+  int stackLoc = -1;
+  bvh_node* currNode = (bvh_node *)(this);
+  bool didHitAny = false;
+  bool didHitTemp;
+
+  // if the current node is null and stack is empty, we are done
+  while (stackLoc >= 0 || currNode != nullptr) {
+    // if we don't hit the box, pop the stack
+    if (!box.hit(r, t_min, t_max)) {
+      // break if we get to the bottom of the stack
+      if (stackLoc < 0) {
+        break;
+      }
+
+      currNode = stack[stackLoc--];
+    }
+
+    // if is a node
+    if (currNode->left->isNode()) {
+      // push to the stack
+      stack[++stackLoc] = currNode;
+      currNode = (bvh_node*)currNode->left;
+    }
+    // hit it directly, then recurse right a level up
+    else {
+      didHitTemp = currNode->left->hit(r, t_min, t_max, rec);
+      // decrease t_max if needed
+      t_max = (didHitTemp && (rec.t < t_max)) ? rec.t : t_max;
+      didHitAny = didHitAny || didHitTemp;
+
+      // only break the loop once we've found a valid node
+      while (true) {
+        // if we've gotten to the bottom of the stack, then we break both loops
+        if (stackLoc < 0) {
+          currNode = nullptr;
+          break;
+        }
+        // pop the stack, recurse right if right is a node
+        currNode = stack[stackLoc--];
+        if (currNode->right->isNode()) {
+          currNode = (bvh_node*)currNode->right;
+          break;
+        }
+          // if right is not a node, hit it directly
+        else {
+          didHitTemp = currNode->right->hit(r, t_min, t_max, rec);
+          // decrease t_max if needed
+          t_max = (didHitTemp && (rec.t < t_max)) ? rec.t : t_max;
+          didHitAny = didHitAny || didHitTemp;
+          // loop back up, popping the stack again!
+        }
+      }
+    }
   }
 
-  bool hit_left = left->hit(r, t_min, t_max, rec);
-  // right is constrained to impact closer than left
-  bool hit_right = right->hit(r, t_min, hit_left ? rec.t : t_max, rec);
-
-  return hit_left || hit_right;
+  return didHitAny;
 }
-//  bvh_node* currNode = const_cast<bvh_node *>(this);
-//  aabb currBox;
-//  bool didHitAny = false;
-//  int depth = 0;
-//
-//  while (true) {
-//    currNode->bounding_box(t_min, t_max, currBox);
-//
-//    // exit early if we miss the box
-//    if (!box.hit(r, t_min, t_max)) {
-//      break;
-//    }
-//
-////    printf("%d\n", depth);
-//
-//    // actually recurse left
-//    bool didHitTemp = currNode->left->hit(r, t_min, t_max, rec);
-//    didHitAny = didHitAny || didHitTemp;
-//    // decrease t_max if needed
-//    t_max = (didHitTemp && (rec.t < t_max)) ? rec.t : t_max;
-//
-//    // don't bother with the right if it's a duplicate
-//    if (currNode->left != currNode->right) {
-//      // if is a node, loop down a level
-//      if (currNode->right->isNode()) {
-//        depth++;
-//        currNode = (bvh_node *)(currNode->right);
-//        continue;
-//      }
-//      // if not, hit the object, return if we hit anything
-//      else {
-//        didHitTemp = currNode->right->hit(r, t_min, t_max, rec);
-//        didHitAny = didHitAny || didHitTemp;
-//        break;
-//      }
-//    }
-//    else {
-//      break;
-//    }
-//  }
-//  return didHitAny;
-//}
-//  auto currNode = const_cast<bvh_node *>(this);
-//  aabb currBox;
-//  bool didHitAny = false;
-//  bool didHitTemp;
-//
-//  while (true) {
-//    currNode->bounding_box(t_min, t_max, currBox);
-//    // go up a level if we miss the box -- if we can't, then end the program
-//    // we don't "continue" because we already checked box intersection of the top
-//    if (!box.hit(r, t_min, t_max)) {
-//      if (currNode->hasParent) {
-//        currNode = currNode->parent;
-//      } else {
-//        break;
-//      }
-//    }
-//
-//    // if the left is a node, recurse left
-//    if (currNode->left->isNode()) {
-//      currNode = (bvh_node*)currNode->left;
-//      continue;
-//    }
-//    // otherwise, try to hit the object with the ray
-//    else {
-//      didHitTemp = currNode->left->hit(r, t_min, t_max, rec);
-//      didHitAny = didHitAny || didHitTemp;
-//      // decrease t_max if needed
-//      t_max = (didHitTemp && (rec.t < t_max)) ? rec.t : t_max;
-//    }
-//
-//    // if right and left pointers are the same, skip calculating duplicates!
-//    if (currNode->right != currNode->left) {
-//      // if the right is a node, recurse right
-//      if (currNode->right->isNode()) {
-//        currNode = (bvh_node*)currNode->right;
-//        continue;
-//      }
-//        // otherwise, try to hit the object with the ray
-//      else {
-//        didHitTemp = currNode->right->hit(r, t_min, t_max, rec);
-//        didHitAny = didHitAny || didHitTemp;
-//        // decrease t_max if needed
-//        t_max = (didHitTemp && (rec.t < t_max)) ? rec.t : t_max;
-//      }
-//    }
-//
-//    // go up a level if we still can
-//    if (currNode->hasParent) {
-//      currNode = currNode->parent;
-//    } else {
-//      break;
-//    }
-//  }
-//
-//  return didHitAny;
-//}
 
 __device__ inline bool box_compare(const hittable* a, const hittable* b, int axis) {
   aabb box_a;
