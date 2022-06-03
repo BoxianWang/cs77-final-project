@@ -213,7 +213,7 @@ __global__ void render(
   unsigned int i = numX / number_samples;
   unsigned int j = threadIdx.y + blockIdx.y * blockDim.y;
   if((i >= max_x) || (j >= max_y)) return;
-  int pixel_index = int(j)*max_x + int(numX);
+  int pixel_index = int(j)*max_x*number_samples + int(numX);
   curandState local_rand_state = rand_state[pixel_index];
   float u = (float(i) + curand_uniform(&local_rand_state)) / float(max_x);
   float v = (float(j) + curand_uniform(&local_rand_state)) / float(max_y);
@@ -325,7 +325,7 @@ int main() {
   std::cerr << "\nInit fin...\n";
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
-  render<<<blocks, threads>>>(fb, nx*num_samples, ny,
+  render<<<blocks, threads>>>(fb, nx, ny,
                               d_world,
                               d_rand_state,
                               d_cam,
@@ -345,15 +345,16 @@ int main() {
       size_t pixel_index = j*nx + i;
       float r = 0.f, g = 0.f, b = 0.f;
 
-      for (int it = 0; i < num_samples; i++)
+      for (int it = 0; it < num_samples; it++)
       {
-        r += fb[pixel_index+it].x();
-        g += fb[pixel_index+it].y();
-        b += fb[pixel_index+it].z();
+        r += fb[pixel_index*num_samples + it].x();
+        g += fb[pixel_index*num_samples + it].y();
+        b += fb[pixel_index*num_samples + it].z();
       }
 
+      // gamma correct
       r = sqrt(r / num_samples); g = sqrt(g / num_samples); b = sqrt(b / num_samples);
-      
+
       // float r = fb[pixel_index].x();
       // float g = fb[pixel_index].y();
       // float b = fb[pixel_index].z();
