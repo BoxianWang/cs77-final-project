@@ -14,23 +14,8 @@ class aabb {
     __device__ point3 max() const {return maximum; }
 
     __device__ bool hit(const ray& r, float t_min, float t_max) const {
-      // for (int a = 0; a < 3; a++) {
-      //   auto invD = 1.0f / r.direction()[a];
-      //   auto t0 = (min()[a] - r.origin()[a]) * invD;
-      //   auto t1 = (max()[a] - r.origin()[a]) * invD;
-      //   if (invD < 0.0f) {
-      //     auto temp = t1;
-      //     t1 = t0;
-      //     t0 = temp;
-      //   }
-      //   t_min = t0 > t_min ? t0 : t_min;
-      //   t_max = t1 < t_max ? t1 : t_max;
-      //   if (t_max <= t_min)
-      //     return false;
-      // }
-      // return true;
-      
-      // this code runs the same as above, but without the for loop
+      // medium article by Roman Wiche talking about speed up methods for AABB hit methods in BVH traversal
+      // link: https://medium.com/@bromanz/another-view-on-the-classic-ray-aabb-intersection-algorithm-for-bvh-traversal-41125138b525
       vec3 invD = vec3(1.0f / r.direction()[0], 1.0f / r.direction()[1], 1.0f / r.direction()[2]);
       vec3 t0s = (min() - r.origin()) * invD;
       vec3 t1s = (max() - r.origin()) * invD;
