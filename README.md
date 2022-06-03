@@ -28,6 +28,7 @@
 		v. The main function, which allocates memory and manages all the GPU-CPU
 			interactions
 
+
 ## ==============WORK DONE==============
 ### Work that is entirely our own:
 1. Benchmarking the various implementations

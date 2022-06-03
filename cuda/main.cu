@@ -221,28 +221,6 @@ __global__ void render(
   // get the ray and ray color
   ray r = (*cam)->get_ray(&local_rand_state, u, v);
   fb[pixel_index] = ray_color(r, world, &local_rand_state);
-
-  // fb[pixel_index] = vec3(0,0,0);
-
-  
-  // this loop handles super sampling for antialiasing
-  // for (int it = 0; it < number_samples; it++) {
-  //   float u = (float(i) + curand_uniform(&local_rand_state)) / float(max_x);
-  //   float v = (float(j) + curand_uniform(&local_rand_state)) / float(max_y);
-  //   ray r = (*cam)->get_ray(&local_rand_state, u, v);
-  //   fb[pixel_index] += ray_color(r, world, &local_rand_state) / float(number_samples);
-  // }
-
-  
-  
-  //superSample<<<1,number_samples>>>(fb, i, j, max_x, max_y, pixel_index, world, local_rand_state, cam, number_samples);
-  //cudaDeviceSynchronize();
-
-  // TODO: gamma correct at the end
-  // fb[pixel_index] = vec3(sqrt(fb[pixel_index].x()),
-  //                        sqrt(fb[pixel_index].y()),
-  //                        sqrt(fb[pixel_index].z())
-  //                        );
 }
 
 int main() {
