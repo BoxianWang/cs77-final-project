@@ -103,3 +103,7 @@ Larger scene: 0.633864 seconds
 ### CUDA (using intelligent xyz trees)
 0.390624 seconds (A little faster...)
 Larger scene: 0.597435 seconds
+
+### CUDA (using unrolled supersampling)
+0.177274 seconds (Another 2x improvement!)
+Larger scene: 0.280259 seconds

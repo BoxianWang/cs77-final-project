@@ -10,15 +10,19 @@
 
 class bvh_node : public hittable {
   public:
-    __device__ bvh_node();
+    __device__ bvh_node() {
+      left= nullptr;
+      right= nullptr;
+      size=0;
+    }
 
     __device__ bvh_node(
         hittable** src_objects,
         size_t start, size_t end,
         float time0, float time1,
         curandState *rand_state,
-        bvh_node* nodeParent,
-        bool hasParent
+        bvh_node* treeBackingArray,
+        int treeBackingArraySize
       );
 
     __device__ virtual bool hit(
@@ -42,8 +46,6 @@ class bvh_node : public hittable {
   public:
     hittable* left;
     hittable* right;
-    bvh_node* parent;
-    bool hasParent = false;
     unsigned long size;
     aabb box;
 };
@@ -86,65 +88,77 @@ __device__ bool bvh_node::bounding_box(float time0, float time1, aabb& output_bo
 // Avoids actual recursion and manages an explicit cache instead
 // Uses https://www.techiedelight.com/inorder-tree-traversal-iterative-recursive/
 __device__ bool bvh_node::hit(const ray& r, float t_min, float t_max, hit_record& rec) const {
-  // create stack of pointers to hittable
-  bvh_node* stack[64];
-  int stackLoc = -1;
-  bvh_node* currNode = (bvh_node *)(this);
-  bool didHitAny = false;
-  bool didHitTemp;
-
-  // if the current node is null and stack is empty, we are done
-  while (stackLoc >= 0 || currNode != nullptr) {
-    // if we don't hit the box, pop the stack
-    if (!box.hit(r, t_min, t_max)) {
-      // break if we get to the bottom of the stack
-      if (stackLoc < 0) {
-        break;
-      }
-
-      currNode = stack[stackLoc--];
-    }
-
-    // if is a node
-    if (currNode->left->isNode()) {
-      // push to the stack
-      stack[++stackLoc] = currNode;
-      currNode = (bvh_node*)currNode->left;
-    }
-    // hit it directly, then recurse right a level up
-    else {
-      didHitTemp = currNode->left->hit(r, t_min, t_max, rec);
-      // decrease t_max if needed
-      t_max = (didHitTemp && (rec.t < t_max)) ? rec.t : t_max;
-      didHitAny = didHitAny || didHitTemp;
-
-      // only break the loop once we've found a valid node
-      while (true) {
-        // if we've gotten to the bottom of the stack, then we break both loops
-        if (stackLoc < 0) {
-          currNode = nullptr;
-          break;
-        }
-        // pop the stack, recurse right if right is a node
-        currNode = stack[stackLoc--];
-        if (currNode->right->isNode()) {
-          currNode = (bvh_node*)currNode->right;
-          break;
-        }
-          // if right is not a node, hit it directly
-        else {
-          didHitTemp = currNode->right->hit(r, t_min, t_max, rec);
-          // decrease t_max if needed
-          t_max = (didHitTemp && (rec.t < t_max)) ? rec.t : t_max;
-          didHitAny = didHitAny || didHitTemp;
-          // loop back up, popping the stack again!
-        }
-      }
-    }
+  // exit early if we miss the box
+  if (!box.hit(r, t_min, t_max)) {
+    return false;
   }
 
-  return didHitAny;
+  bool hit_left = left->hit(r, t_min, t_max, rec);
+  // right is constrained to impact closer than left
+  bool hit_right = right->hit(r, t_min, hit_left ? rec.t : t_max, rec);
+
+  return hit_left || hit_right;
 }
+  // create stack of pointers to hittable
+
+//  bvh_node* stack[64];
+//  int stackLoc = -1;
+//  bvh_node* currNode = (bvh_node *)(this);
+//  bool didHitAny = false;
+//  bool didHitTemp;
+//
+//  // if the current node is null and stack is empty, we are done
+//  while (stackLoc >= 0 || currNode != nullptr) {
+//    // if we don't hit the box, pop the stack
+//    if (!box.hit(r, t_min, t_max)) {
+//      // break if we get to the bottom of the stack
+//      if (stackLoc < 0) {
+//        break;
+//      }
+//
+//      currNode = stack[stackLoc--];
+//    }
+//
+//    // if is a node
+//    if (currNode->left->isNode()) {
+//      // push to the stack
+//      stack[++stackLoc] = currNode;
+//      currNode = (bvh_node*)currNode->left;
+//    }
+//    // hit it directly, then recurse right a level up
+//    else {
+//      didHitTemp = currNode->left->hit(r, t_min, t_max, rec);
+//      // decrease t_max if needed
+//      t_max = (didHitTemp && (rec.t < t_max)) ? rec.t : t_max;
+//      didHitAny = didHitAny || didHitTemp;
+//
+//      // only break the loop once we've found a valid node
+//      while (true) {
+//        // if we've gotten to the bottom of the stack, then we break both loops
+//        if (stackLoc < 0) {
+//          currNode = nullptr;
+//          break;
+//        }
+//        // pop the stack, recurse right if right is a node
+//        currNode = stack[stackLoc--];
+//        if (currNode->right->isNode()) {
+//          currNode = (bvh_node*)currNode->right;
+//          break;
+//        }
+//          // if right is not a node, hit it directly
+//        else {
+//          didHitTemp = currNode->right->hit(r, t_min, t_max, rec);
+//          // decrease t_max if needed
+//          t_max = (didHitTemp && (rec.t < t_max)) ? rec.t : t_max;
+//          didHitAny = didHitAny || didHitTemp;
+//          // loop back up, popping the stack again!
+//        }
+//      }
+//    }
+//  }
+//
+//  return didHitAny;
+//}
 
 __device__ inline bool box_compare(const hittable* a, const hittable* b, int axis) {
   aabb box_a;
@@ -232,19 +246,14 @@ __device__ bvh_node::bvh_node(
     size_t start, size_t end,
     float time0, float time1,
     curandState *rand_state,
-    bvh_node* nodeParent,
-    bool hasNodeParent
+    bvh_node* treeBackingArray,
+    int treeBackingArraySize
 ) {
   float bestVolumeSum;
   int bestAxis;
 
   size_t object_span = end - start;
   size = object_span;
-
-  if (hasNodeParent) {
-    parent = nodeParent;
-    hasParent = hasNodeParent;
-  }
 
   // check over all axes
   for (int axis = 0; axis < 3; axis++ ) {
@@ -288,14 +297,26 @@ __device__ bvh_node::bvh_node(
       left = objects[start];
     }
     else {
-      left = new bvh_node(objects, start, mid, time0, time1, rand_state, this, true);
+      // goes from index 0 to index size/2 exclusive (i.e., first size/2-1 elements)
+      treeBackingArray[treeBackingArraySize/4] = bvh_node(
+          objects, start, mid, time0, time1, rand_state,
+          treeBackingArray,
+          treeBackingArraySize/2
+          );
+      left = treeBackingArray+(treeBackingArraySize/4);
     }
 
     if (end-mid == 1) {
       right = objects[mid];
     }
     else {
-      right = new bvh_node(objects, mid, end, time0, time1, rand_state, this, true);
+      // goes from index size/2+1 to the end (exclusive) (i.e., starts at size/2+2 element to the end)
+      treeBackingArray[(treeBackingArraySize/4+1)*3-1] = bvh_node(
+          objects, mid, end, time0, time1, rand_state,
+          treeBackingArray+treeBackingArraySize/2+1,
+          treeBackingArraySize/2
+          );
+      right = treeBackingArray+((treeBackingArraySize/4+1)*3-1);
     }
   }
 
