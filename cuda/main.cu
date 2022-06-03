@@ -191,33 +191,58 @@ __device__ vec3 ray_color(const ray& r, hittable **world, curandState *local_ran
   return vec3(0.0,0.0,0.0); // exceeded recursion
 }
 
+// __global__ void superSample(vec3 *fb, unsigned int i, unsigned int j, 
+//     int max_x, int max_y, int idx, hittable** world,
+//     curandState local_rand_state, camera** cam, int number_samples)
+// {
+//   if (blockIdx.x >= number_samples) return;
+
+//   float u = (float(i) + curand_uniform(&local_rand_state)) / float(max_x);
+//   float v = (float(j) + curand_uniform(&local_rand_state)) / float(max_y);
+//   ray r = (*cam)->get_ray(&local_rand_state, u, v);
+//   fb[idx] = ray_color(r, world, &local_rand_state) / float(number_samples);
+// }
+
 // actually renders a pixel
 __global__ void render(
     vec3 *fb, int max_x, int max_y, hittable** world, curandState *rand_state,
     camera** cam,
     int number_samples
 ) {
-  unsigned int i = threadIdx.x + blockIdx.x * blockDim.x;
+  unsigned int numX = threadIdx.x + blockIdx.x * blockDim.x;
+  unsigned int i = numX / number_samples;
   unsigned int j = threadIdx.y + blockIdx.y * blockDim.y;
   if((i >= max_x) || (j >= max_y)) return;
-  int pixel_index = int(j)*max_x + int(i);
+  int pixel_index = int(j)*max_x + int(numX);
   curandState local_rand_state = rand_state[pixel_index];
+  float u = (float(i) + curand_uniform(&local_rand_state)) / float(max_x);
+  float v = (float(j) + curand_uniform(&local_rand_state)) / float(max_y);
 
-  fb[pixel_index] = vec3(0,0,0);
+  // get the ray and ray color
+  ray r = (*cam)->get_ray(&local_rand_state, u, v);
+  fb[pixel_index] = ray_color(r, world, &local_rand_state);
 
+  // fb[pixel_index] = vec3(0,0,0);
+
+  
   // this loop handles super sampling for antialiasing
-  for (int it = 0; it < number_samples; it++) {
-    float u = (float(i) + curand_uniform(&local_rand_state)) / float(max_x);
-    float v = (float(j) + curand_uniform(&local_rand_state)) / float(max_y);
-    ray r = (*cam)->get_ray(&local_rand_state, u, v);
-    fb[pixel_index] += ray_color(r, world, &local_rand_state) / float(number_samples);
-  }
+  // for (int it = 0; it < number_samples; it++) {
+  //   float u = (float(i) + curand_uniform(&local_rand_state)) / float(max_x);
+  //   float v = (float(j) + curand_uniform(&local_rand_state)) / float(max_y);
+  //   ray r = (*cam)->get_ray(&local_rand_state, u, v);
+  //   fb[pixel_index] += ray_color(r, world, &local_rand_state) / float(number_samples);
+  // }
 
-  // gamma correct
-  fb[pixel_index] = vec3(sqrt(fb[pixel_index].x()),
-                         sqrt(fb[pixel_index].y()),
-                         sqrt(fb[pixel_index].z())
-                         );
+  
+  
+  //superSample<<<1,number_samples>>>(fb, i, j, max_x, max_y, pixel_index, world, local_rand_state, cam, number_samples);
+  //cudaDeviceSynchronize();
+
+  // TODO: gamma correct at the end
+  // fb[pixel_index] = vec3(sqrt(fb[pixel_index].x()),
+  //                        sqrt(fb[pixel_index].y()),
+  //                        sqrt(fb[pixel_index].z())
+  //                        );
 }
 
 int main() {
@@ -235,7 +260,8 @@ int main() {
   // Camera
 
   int num_pixels = nx*ny;
-  size_t fb_size = num_pixels*sizeof(vec3);
+  int num_samples = 10;
+  size_t fb_size = num_pixels*num_samples*sizeof(vec3);
 
   // allocate FB
   vec3 *fb;
@@ -243,18 +269,18 @@ int main() {
 
   // allocate cuda rand state
   curandState *d_rand_state;
-  checkCudaErrors(cudaMalloc((void **)&d_rand_state, num_pixels*sizeof(curandState)));
+  checkCudaErrors(cudaMalloc((void **)&d_rand_state, num_pixels*num_samples*sizeof(curandState)));
 
   // one block is 64 threads
   int tx=8;
   int ty=8;
 
   // set up the random state
-  dim3 blocks(nx/tx + 1, ny/ty + 1);
+  dim3 blocks(num_samples*nx/tx + 1, ny/ty + 1);
   // total threads are tx*ty
   dim3 threads(tx,ty);
   // initialize the rand state
-  render_init<<<blocks, threads>>>(nx, ny, d_rand_state);
+  render_init<<<blocks, threads>>>(nx*num_samples, ny, d_rand_state);
 
   // generate the world
   hittable **d_list;
@@ -299,11 +325,11 @@ int main() {
   std::cerr << "\nInit fin...\n";
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
-  render<<<blocks, threads>>>(fb, nx, ny,
+  render<<<blocks, threads>>>(fb, nx*num_samples, ny,
                               d_world,
                               d_rand_state,
                               d_cam,
-                              10       // number_samples
+                              num_samples       // number_samples
                               );
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
@@ -317,9 +343,20 @@ int main() {
   for (int j = ny-1; j >= 0; j--) {
     for (int i = 0; i < nx; i++) {
       size_t pixel_index = j*nx + i;
-      float r = fb[pixel_index].x();
-      float g = fb[pixel_index].y();
-      float b = fb[pixel_index].z();
+      float r = 0.f, g = 0.f, b = 0.f;
+
+      for (int it = 0; i < num_samples; i++)
+      {
+        r += fb[pixel_index+it].x();
+        g += fb[pixel_index+it].y();
+        b += fb[pixel_index+it].z();
+      }
+
+      r = sqrt(r / num_samples); g = sqrt(g / num_samples); b = sqrt(b / num_samples);
+      
+      // float r = fb[pixel_index].x();
+      // float g = fb[pixel_index].y();
+      // float b = fb[pixel_index].z();
       int ir = int(255.99*r);
       int ig = int(255.99*g);
       int ib = int(255.99*b);
