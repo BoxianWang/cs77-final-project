@@ -198,7 +198,7 @@ __device__ void sort (hittable** objects, size_t start, size_t end, bool (*compa
     // that are greater than key, to one
     // position ahead of their
     // current position
-    while (j >= start && comparator(carried, objects[j]))
+    while (j >= 0 && comparator(carried, objects[j]))
     {
       objects[j + 1] = objects[j];
       j = j - 1;

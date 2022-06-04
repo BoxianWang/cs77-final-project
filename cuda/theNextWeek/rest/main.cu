@@ -6,6 +6,7 @@
 #include "objects/moving_sphere.cuh"
 #include "objects/hittable.cuh"
 #include "objects/box.cuh"
+#include "objects/bumpy_sphere.cuh"
 #include "objects/hittable_list.cuh"
 #include "objects/aarect.cuh"
 #include <stdexcept>
@@ -50,6 +51,31 @@ int get_texture()
 }
 
 __global__ void two_perlin_spheres(hittable **d_list, hittable **d_world, curandState *rand_state, int t1, int t2) {
+__host__ void prepare_texture(int *height, int *width, char * filename) {
+    unsigned char *data;
+
+    int components_per_pixel = 3;
+    data = stbi_load(
+            filename, width, height, &components_per_pixel, components_per_pixel);
+    int length = *width * *height* 3;
+
+    // build 1D texture 
+    size_t offset = 0;
+    tex.addressMode[0] = cudaAddressModeBorder;
+    tex.addressMode[1] = cudaAddressModeBorder;
+    tex.filterMode = cudaFilterModePoint;
+    tex.normalized = false;
+
+    unsigned int* ddata;
+
+    checkCudaErrors(cudaMalloc((void**)&ddata, sizeof(unsigned char)*length));
+    cudaMemcpy(ddata, data, sizeof(unsigned char)*length, cudaMemcpyHostToDevice);
+
+    cudaBindTexture(&offset, tex, ddata, sizeof(unsigned char)*length);
+    checkCudaErrors(cudaGetLastError());
+}
+
+__global__ void two_perlin_spheres(hittable **d_list, hittable **d_world, curandState *rand_state) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
     auto pertext = new noise_texture(4, rand_state, t1);
     auto pertext2 = new noise_texture(4, rand_state, t2);
@@ -59,6 +85,34 @@ __global__ void two_perlin_spheres(hittable **d_list, hittable **d_world, curand
     int sphereNum = 0;
     d_list[sphereNum++] = new sphere(point3(0,-1000,0), 1000, mat1);
     d_list[sphereNum++] = new sphere(point3(0, 2, 0), 2, mat2);
+
+    *d_world = new hittable_list(d_list, sphereNum, rand_state);
+  }
+}
+
+__global__ void two_perlin_spheres_2(hittable **d_list, hittable **d_world, curandState *rand_state) {
+  if (threadIdx.x == 0 && blockIdx.x == 0) {
+    auto pertext = new noise_texture(20, rand_state, 1);
+    auto mat = new lambertian(pertext);
+
+    int sphereNum = 0;
+
+    d_list[sphereNum++] = new sphere(point3(0, 9, 0), 2, mat);
+
+    *d_world = new hittable_list(d_list, sphereNum, rand_state);
+  }
+}
+
+
+__global__ void two_bumpy_spheres(hittable **d_list, hittable **d_world, curandState *rand_state) {
+  if (threadIdx.x == 0 && blockIdx.x == 0) {
+    auto pertext = new solid_color(color(0.3,0.3,0.3));
+    auto mat = new lambertian(pertext);
+    auto mat2 = new lambertian(color(0.8,0.8,0.8));
+
+    int sphereNum = 0;
+    d_list[sphereNum++] = new sphere(point3(0,-1000,0), 1000, mat2);
+    d_list[sphereNum++] = new bumpy_sphere(point3(0, 2, 0), 2, mat, rand_state);
 
     *d_world = new hittable_list(d_list, sphereNum, rand_state);
   }
@@ -214,6 +268,63 @@ __global__ void random_world(hittable **d_list, hittable **d_world, curandState 
   }
 }
 
+__global__ void final_scene(hittable **d_list, hittable **d_world, curandState *rand_state, int height, int width) {
+  if (threadIdx.x == 0 && blockIdx.x == 0) {
+    int sphereNum = 0;
+    auto ground = new lambertian(color(0.48, 0.83, 0.53));
+
+    const int boxes_per_side = 20;
+    for (int i = 0; i < boxes_per_side; i++) {
+        for (int j = 0; j < boxes_per_side; j++) {
+            auto w = 100.0;
+            auto x0 = -1000.0 + i*w;
+            auto z0 = -1000.0 + j*w;
+            auto y0 = 0.0;
+            auto x1 = x0 + w;
+            auto y1 = random_float(rand_state, 1,101);
+            auto z1 = z0 + w;
+            hittable **side = (hittable **)malloc(sizeof(hittable*)*6);
+            d_list[sphereNum++] = (new box(point3(x0,y0,z0), point3(x1,y1,z1), ground,  side, rand_state));
+        }
+    }
+
+
+
+    auto light = new diffuse_light(color(7, 7, 7));
+    d_list[sphereNum++] =(new xz_rect(123, 423, 147, 412, 554, light));
+
+    auto center1 = point3(400, 400, 200);
+    auto center2 = center1 + vec3(30,0,0);
+    auto moving_sphere_material = new lambertian(color(0.7, 0.3, 0.1));
+    d_list[sphereNum++] =(new moving_sphere(center1, center2, 0, 1, 50, moving_sphere_material));
+
+    d_list[sphereNum++] =(new sphere(point3(260, 150, 45), 50, new dielectric(1.5)));
+    d_list[sphereNum++] =(new sphere(
+        point3(0, 150, 145), 50, new metal(color(0.8, 0.8, 0.9), 1.0)
+    ));
+
+    auto boundary = new sphere(point3(360,150,145), 70, new dielectric(1.5));
+    d_list[sphereNum++] =(boundary);
+    d_list[sphereNum++] =(new constant_medium(rand_state, boundary, 0.2, color(0.2, 0.4, 0.9)));
+    boundary = new sphere(point3(0, 0, 0), 5000, new dielectric(1.5));
+    d_list[sphereNum++] =(new constant_medium(rand_state, boundary, .0001, color(1,1,1)));
+
+
+    auto emat = new lambertian( new image_texture(width, height));
+    d_list[sphereNum++] =(new sphere(point3(400,200,400), 100, emat));
+    auto pertext = new noise_texture(0.1, rand_state);
+    d_list[sphereNum++] =(new sphere(point3(220,280,300), 80, new lambertian(pertext)));
+
+    auto white = new lambertian(color(.73, .73, .73));
+    int ns = 1000;
+    for (int j = 0; j < ns; j++) {
+        d_list[sphereNum++] =(new sphere(vec3_random(rand_state, 0,165), 10, white));
+    }
+
+    *d_world = new hittable_list(d_list, sphereNum, rand_state);
+  }
+}
+
 // cleans up the world
 __global__ void free_world(hittable **d_list, hittable **d_world) {
   int objectNumber = (*d_world)->getObjectNumber();
@@ -228,7 +339,7 @@ __global__ void create_camera(camera **d_cam) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
     vec3 origin, lookAt, vup;
     float vFov, aspectRatio, aperture, dist_to_focus;
-    switch (0)
+    switch (6)
     {
     case 0:
     // perlin
@@ -260,6 +371,7 @@ __global__ void create_camera(camera **d_cam) {
       aspectRatio = 3./2.;
       aperture = .0;
       dist_to_focus = 10;
+      break;
     case 4:
       origin = point3(278, 278, -800);
       lookAt = point3(278, 278, 0);
@@ -267,6 +379,27 @@ __global__ void create_camera(camera **d_cam) {
       vFov = 40;
       aspectRatio = 1.0;
       dist_to_focus = 10;
+      break;
+    case 5:
+    // custom
+      origin = point3(0, 0, 0);
+      lookAt = point3(0, 1, 0);
+      vup = point3(0, 0, 1);
+      vFov = 40;
+      aspectRatio = 3./2.;
+      aperture = .0;
+      dist_to_focus = 6;
+      break;
+    case 6:
+    // fina scene
+      origin = point3(478, 278, -600);
+      lookAt = point3(278, 278, 0);
+      vup = point3(0, 1.0, 0);
+      vFov = 40.0;
+      aperture = 0.0;
+      dist_to_focus = 10.0;
+      break;
+    
 
     }
     *d_cam = new camera(origin, lookAt, vup, vFov, aspectRatio, aperture, dist_to_focus, 0., 1.);
@@ -294,7 +427,7 @@ __device__ vec3 ray_color(const ray& r, const color& background, hittable **worl
   ray cur_ray = r;
   vec3 cur_prod = vec3(1,1,1);
   vec3 cur_sum = vec3(0,0,0);
-  int max_depth = 200;
+  int max_depth = 50;
   for(int i = 0; i < max_depth; i++) {
     hit_record rec;
     if ((*world)->hit(cur_ray, 0.001f, infinity, rec)) {
@@ -317,29 +450,6 @@ __device__ vec3 ray_color(const ray& r, const color& background, hittable **worl
 
 
 
-__host__ void prepare_texture(int *height, int *width, char * filename) {
-    unsigned char *data;
-
-    int components_per_pixel = 3;
-    data = stbi_load(
-            filename, width, height, &components_per_pixel, components_per_pixel);
-    int length = *width * *height* 3;
-
-    // build 1D texture 
-    size_t offset = 0;
-    tex.addressMode[0] = cudaAddressModeBorder;
-    tex.addressMode[1] = cudaAddressModeBorder;
-    tex.filterMode = cudaFilterModePoint;
-    tex.normalized = false;
-
-    unsigned int* ddata;
-
-    checkCudaErrors(cudaMalloc((void**)&ddata, sizeof(unsigned char)*length));
-    cudaMemcpy(ddata, data, sizeof(unsigned char)*length, cudaMemcpyHostToDevice);
-
-    cudaBindTexture(&offset, tex, ddata, sizeof(unsigned char)*length);
-    checkCudaErrors(cudaGetLastError());
-}
 
 // actually renders a pixel
 __global__ void render(
@@ -386,7 +496,7 @@ int main() {
     aspect_ratio = 1.0;
     break;
   }
-  const int nx = 600;
+  const int nx = 800;
   const int ny = static_cast<int>(nx / aspect_ratio);
   std::cerr << nx << " by " << ny << " image\n";
 
@@ -420,21 +530,21 @@ int main() {
 
   // bg color
   color background(0, 0, 0);
-  int num_samples = 10;
+  int num_samples = 100;
   int width, height;  //img texture
 
   hittable **d_list;
   hittable **d_world;
   camera **d_cam;
 
-  checkCudaErrors(cudaMalloc((void **)&d_list, 488*sizeof(hittable *)));
+  checkCudaErrors(cudaMalloc((void **)&d_list, 5000*sizeof(hittable *)));
   checkCudaErrors(cudaDeviceSynchronize());
   checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(hittable *)));
   checkCudaErrors(cudaDeviceSynchronize());
 
   std::cerr << "Choosing a scene...\n";
   // choose a scene
-  switch (0)
+  switch (8)
   {
   case 0:
     std::cerr << "Getting textures...\n";
@@ -476,9 +586,26 @@ int main() {
     background = color(0,0,0);
     num_samples = 200;
     break;
+  case 6:
+    // circular noise
+    two_perlin_spheres_2<<<1,1>>>(d_list, d_world, d_rand_state);
+    background = color(0.70, 0.80, 1.00);
+    break;
+  case 7:
+    // bump mapping
+    two_bumpy_spheres<<<1,1>>>(d_list, d_world, d_rand_state);
+    background = color(0.70, 0.80, 1.00);
+    break;
+  case 8:
+    // bump mapping
+    prepare_texture(&height, &width, "../earthmap.jpg");
+    final_scene<<<1,1>>>(d_list, d_world, d_rand_state, height, width);
+    background = color(0.70, 0.80, 1.00);
+    num_samples = 100;
+    break;
   }
-  checkCudaErrors(cudaGetLastError());
-  checkCudaErrors(cudaDeviceSynchronize());
+checkCudaErrors(cudaGetLastError());
+checkCudaErrors(cudaDeviceSynchronize());
 
       // generate the camera
     

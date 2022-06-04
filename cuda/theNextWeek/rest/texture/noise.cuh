@@ -81,4 +81,5 @@ class noise_texture : public Texture {
         int c;
 };
 
+
 #endif
