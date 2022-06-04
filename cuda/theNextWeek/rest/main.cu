@@ -553,7 +553,7 @@ int main() {
 
 
   // choose a scene
-  switch (7)
+  switch (8)
   {
   case 0:
     two_perlin_spheres<<<1,1>>>(d_list, d_world, d_rand_state);

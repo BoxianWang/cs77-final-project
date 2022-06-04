@@ -1,6 +1,6 @@
-//==============================================================================================
-// Adapted  from P. Shirley's 'the next week'
-//==============================================================================================
+//
+// Created by smooth_operator on 5/25/22.
+//
 
 #ifndef CUDA_AABB_CUH
 #define CUDA_AABB_CUH
@@ -13,22 +13,31 @@ class aabb {
     __device__ point3 min() const {return minimum; }
     __device__ point3 max() const {return maximum; }
 
+    // https://medium.com/@bromanz/another-view-on-the-classic-ray-aabb-intersection-algorithm-for-bvh-traversal-41125138b525
     __device__ bool hit(const ray& r, float t_min, float t_max) const {
-      for (int a = 0; a < 3; a++) {
-        auto invD = 1.0f / r.direction()[a];
-        auto t0 = (min()[a] - r.origin()[a]) * invD;
-        auto t1 = (max()[a] - r.origin()[a]) * invD;
-        if (invD < 0.0f) {
-          auto temp = t1;
-          t1 = t0;
-          t0 = temp;
-        }
-        t_min = t0 > t_min ? t0 : t_min;
-        t_max = t1 < t_max ? t1 : t_max;
-        if (t_max <= t_min)
-          return false;
-      }
-      return true;
+      // medium article by Roman Wiche talking about speed up methods for AABB hit methods in BVH traversal
+      // link: https://medium.com/@bromanz/another-view-on-the-classic-ray-aabb-intersection-algorithm-for-bvh-traversal-41125138b525
+      // this code runs the same as above, but without the for loop
+      vec3 invD = vec3(1.0f / r.direction()[0], 1.0f / r.direction()[1], 1.0f / r.direction()[2]);
+      vec3 t0s = (min() - r.origin()) * invD;
+      vec3 t1s = (max() - r.origin()) * invD;
+
+      vec3 tsmaller = vec3(fmin(t0s[0], t1s[0]),
+                          fmin(t0s[1], t1s[1]),
+                          fmin(t0s[2], t1s[2]));
+      vec3 tbigger = vec3(fmax(t0s[0], t1s[0]),
+                          fmax(t0s[1], t1s[1]),
+                          fmax(t0s[2], t1s[2]));
+
+      float tmin = fmax(t_min, fmax(tsmaller[0], fmax(tsmaller[1], tsmaller[2])));
+      float tmax = fmin(t_max, fmin(tbigger[0], fmin(tbigger[1], tbigger[2])));
+
+      return (tmin < tmax);
+    }
+
+    __device__ float volume() {
+      vec3 diagonal = maximum - minimum;
+      return fabsf(diagonal.x() * diagonal.y() * diagonal.z());
     }
 
   public:

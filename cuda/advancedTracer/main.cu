@@ -26,6 +26,7 @@
 #include "materials/dielectric.cuh"
 #include "materials/diffuse.cuh"
 #include "objects/constant_medium.cuh"
+#include "objects/translate.cuh"
 
 
 
@@ -272,11 +273,16 @@ __global__ void random_world(hittable **d_list, hittable **d_world, curandState 
   }
 }
 
+/**
 __global__ void final_scene(hittable **d_list, hittable **d_world, curandState *rand_state, int height, int width) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
     int sphereNum = 0;
     auto ground = new lambertian(color(0.48, 0.83, 0.53));
+    printf("At start\n");
+    auto boxes1 = new hittable*[400];
+    int boxNum=0;
 
+    // adds 400 boxes to the scene
     const int boxes_per_side = 20;
     for (int i = 0; i < boxes_per_side; i++) {
         for (int j = 0; j < boxes_per_side; j++) {
@@ -288,46 +294,57 @@ __global__ void final_scene(hittable **d_list, hittable **d_world, curandState *
             auto y1 = random_float(rand_state, 1,101);
             auto z1 = z0 + w;
             hittable **side = (hittable **)malloc(sizeof(hittable*)*6);
-            d_list[sphereNum++] = (new box(point3(x0,y0,z0), point3(x1,y1,z1), ground,  side, rand_state));
+            boxes1[boxNum++] = (new box(point3(x0,y0,z0), point3(x1,y1,z1), ground,  side, rand_state));
         }
     }
 
+    d_list[sphereNum++] = new bvh_node(boxes1, 0, boxNum, 0, 0, rand_state);
+//    auto light = new diffuse_light(color(7, 7, 7));
+//    d_list[sphereNum++] =(new xz_rect(123, 423, 147, 412, 554, light));
+//    printf("In middle1\n");
+//
+//    auto center1 = point3(400, 400, 200);
+//    auto center2 = center1 + vec3(30,0,0);
+//    auto moving_sphere_material = new lambertian(color(0.7, 0.3, 0.1));
+//    d_list[sphereNum++] =(new moving_sphere(center1, center2, 0, 1, 50, moving_sphere_material));
+//    printf("In middle2\n");
+//
+//    d_list[sphereNum++] =(new sphere(point3(260, 150, 45), 50, new dielectric(1.5)));
+//    d_list[sphereNum++] =(new sphere(
+//        point3(0, 150, 145), 50, new metal(color(0.8, 0.8, 0.9), 1.0)
+//    ));
+//
+//    auto boundary = new sphere(point3(360,150,145), 70, new dielectric(1.5));
+//    d_list[sphereNum++] =(boundary);
+//    d_list[sphereNum++] =(new constant_medium(rand_state, boundary, 0.2, color(0.2, 0.4, 0.9)));
+//    boundary = new sphere(point3(0, 0, 0), 5000, new dielectric(1.5));
+//    d_list[sphereNum++] =(new constant_medium(rand_state, boundary, .0001, color(1,1,1)));
+//
+//
+//    auto emat = new lambertian( new image_texture(width, height));
+//    d_list[sphereNum++] =(new sphere(point3(400,200,400), 100, emat));
+//    auto pertext = new noise_texture(0.1, rand_state);
+//    d_list[sphereNum++] =(new sphere(point3(220,280,300), 80, new lambertian(pertext)));
+    printf("To end\n");
 
-
-    auto light = new diffuse_light(color(7, 7, 7));
-    d_list[sphereNum++] =(new xz_rect(123, 423, 147, 412, 554, light));
-
-    auto center1 = point3(400, 400, 200);
-    auto center2 = center1 + vec3(30,0,0);
-    auto moving_sphere_material = new lambertian(color(0.7, 0.3, 0.1));
-    d_list[sphereNum++] =(new moving_sphere(center1, center2, 0, 1, 50, moving_sphere_material));
-
-    d_list[sphereNum++] =(new sphere(point3(260, 150, 45), 50, new dielectric(1.5)));
-    d_list[sphereNum++] =(new sphere(
-        point3(0, 150, 145), 50, new metal(color(0.8, 0.8, 0.9), 1.0)
-    ));
-
-    auto boundary = new sphere(point3(360,150,145), 70, new dielectric(1.5));
-    d_list[sphereNum++] =(boundary);
-    d_list[sphereNum++] =(new constant_medium(rand_state, boundary, 0.2, color(0.2, 0.4, 0.9)));
-    boundary = new sphere(point3(0, 0, 0), 5000, new dielectric(1.5));
-    d_list[sphereNum++] =(new constant_medium(rand_state, boundary, .0001, color(1,1,1)));
-
-
-    auto emat = new lambertian( new image_texture(width, height));
-    d_list[sphereNum++] =(new sphere(point3(400,200,400), 100, emat));
-    auto pertext = new noise_texture(0.1, rand_state);
-    d_list[sphereNum++] =(new sphere(point3(220,280,300), 80, new lambertian(pertext)));
-
-    auto white = new lambertian(color(.73, .73, .73));
-    int ns = 1000;
-    for (int j = 0; j < ns; j++) {
-        d_list[sphereNum++] =(new sphere(vec3_random(rand_state, 0,165), 10, white));
-    }
-
-    *d_world = new hittable_list(d_list, sphereNum, rand_state);
+//    auto boxes2 = new hittable*[1000];
+//    int smallSphereNum=0;
+//    auto white = new lambertian(color(.73, .73, .73));
+//    int ns = 1000;
+//    for (int j = 0; j < ns; j++) {
+//        boxes2[smallSphereNum++] =(new sphere(vec3_random(rand_state, 0,165), 10, white));
+//    }
+//
+//    // create a new bvh_node and rotate it
+//    d_list[sphereNum++] = new translate(new rotate_y(
+//        new bvh_node(boxes2, 0, smallSphereNum, 0, 0, rand_state),
+//        15),
+//        vec3(-100,270,395)
+//      );
+//    *d_world = new hittable_list(d_list, sphereNum, rand_state);
   }
 }
+ */
 
 // cleans up the world
 __global__ void free_world(hittable **d_list, hittable **d_world) {
@@ -339,11 +356,11 @@ __global__ void free_world(hittable **d_list, hittable **d_world) {
 }
 
 // creates the camera
-__global__ void create_camera(camera **d_cam) {
+__global__ void create_camera(camera **d_cam, int scene_num) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
     vec3 origin, lookAt, vup;
     float vFov, aspectRatio, aperture, dist_to_focus;
-    switch (0)
+    switch (scene_num)
     {
     case 0:
     // perlin
@@ -368,6 +385,17 @@ __global__ void create_camera(camera **d_cam) {
       dist_to_focus = 10;
       
       break;
+    case 2:
+        // random
+        origin = point3(13, 2, 3);
+        lookAt = point3(0, 0, 0);
+        vup = point3(0, 1.0, 0);
+        vFov = 20;
+        aspectRatio = 3./2.;
+        aperture = .1;
+        dist_to_focus = 10;
+
+        break;
     case 3:
       origin = point3(26,3,6);
       lookAt = point3(0,2,0);
@@ -386,16 +414,35 @@ __global__ void create_camera(camera **d_cam) {
       dist_to_focus = 10;
       break;
     case 5:
-    // custom
-      origin = point3(0, 0, 0);
-      lookAt = point3(0, 1, 0);
-      vup = point3(0, 0, 1);
-      vFov = 40;
+        origin = point3(278, 278, -800);
+        lookAt = point3(278, 278, 0);
+        vup = point3(0, 1.0, 0);
+        vFov = 40;
+        aspectRatio = 1.0;
+        dist_to_focus = 10;
+        break;
+    case 6:
+      // perlin
+      origin = point3(13, 2, 3);
+      lookAt = point3(0, 0, 0);
+      vup = point3(0, 1.0, 0);
+      vFov = 20;
       aspectRatio = 3./2.;
       aperture = .0;
-      dist_to_focus = 6;
+      dist_to_focus = 10;
       break;
-    case 6:
+    case 7:
+      // perlin
+      origin = point3(13, 2, 3);
+      lookAt = point3(0, 0, 0);
+      vup = point3(0, 1.0, 0);
+      vFov = 20;
+      aspectRatio = 3./2.;
+      aperture = .0;
+      dist_to_focus = 10;
+      break;
+
+      case 8:
     // fina scene
       origin = point3(478, 278, -600);
       lookAt = point3(278, 278, 0);
@@ -410,6 +457,7 @@ __global__ void create_camera(camera **d_cam) {
     *d_cam = new camera(origin, lookAt, vup, vFov, aspectRatio, aperture, dist_to_focus, 0., 1.);
   }
 }
+
 
 
 // deletes the camera
@@ -452,8 +500,6 @@ __device__ vec3 ray_color(const ray& r, const color& background, hittable **worl
   }
   return cur_sum; // exceeded recursion
 }
-
-
 
 
 // actually renders a pixel
@@ -553,7 +599,8 @@ int main() {
 
 
   // choose a scene
-  switch (7)
+  int sceneNum = 7;
+  switch (sceneNum)
   {
   case 0:
     two_perlin_spheres<<<1,1>>>(d_list, d_world, d_rand_state);
@@ -604,13 +651,13 @@ int main() {
     background = color(0.70, 0.80, 1.00);
     num_samples = 200;
     break;
-  case 8:
-    // final scene (work in progress)
-    prepare_texture(&height, &width, "../earthmap.jpg");
-    final_scene<<<1,1>>>(d_list, d_world, d_rand_state, height, width);
-    background = color(0.70, 0.80, 1.00);
-    num_samples = 400;
-    break;
+//  case 8:
+//    // final scene (work in progress)
+//    prepare_texture(&height, &width, "../earthmap.jpg");
+//    final_scene<<<1,1>>>(d_list, d_world, d_rand_state, height, width);
+//    background = color(0.70, 0.80, 1.00);
+//    num_samples = 1;
+//    break;
   }
 checkCudaErrors(cudaGetLastError());
 checkCudaErrors(cudaDeviceSynchronize());
@@ -618,7 +665,7 @@ checkCudaErrors(cudaDeviceSynchronize());
       // generate the camera
     
   checkCudaErrors(cudaMalloc((void **)&d_cam, sizeof(camera*)));
-  create_camera<<<1,1>>>(d_cam);
+  create_camera<<<1,1>>>(d_cam, sceneNum);
   checkCudaErrors(cudaGetLastError());
   checkCudaErrors(cudaDeviceSynchronize());
 

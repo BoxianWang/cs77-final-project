@@ -2,13 +2,6 @@
 ## Elliot Potter, Boxian Wang, Eric (Spencer) Warezak
 ## CUDA/C++ ray tracer
 
-## BUILDING AND RUNNING
-
-To build the ray tracer with all advanced features from Book 1 and 2, in `cuda/cmake-build-debug`, run `cmake ..`. Then `make trace`.
-This produces an exectuable `trace` which can be run via `./trace > out.ppm` to output a scene. 
-Note that scene must be manually selected by changing the switch statement in `main.cu` and re-compiled. Note that
-the switch statement for camera angle must also be changed to match the scene.
-
 ## ===========CODE STRUCTURE============
 1. All CUDA code is in the `/cuda` directory.
 2. All C++ code is in the `cpp` directory
@@ -16,10 +9,12 @@ the switch statement for camera angle must also be changed to match the scene.
 4. CUDA executables are built into the `cuda/cmake-build-debug` directory
 	a. `inOneWeekend`: basic rendering of the final scene of the first book
 	b. `inOneWeekendFloat`: the same thing, at 1/3 the time
-	c. `inOneWeekendTree`: implements motion blur and tree-based object collisions
-	d. `inOneWeekendSmarterTree`: the same thing, except the tree builder attempts
+	c. `theNextWeekTree`: implements motion blur and tree-based object collisions
+	d. `theNextWeekSmarterTree`: the same thing, except the tree builder attempts
 		to minimize the volume of each layer of the tree.
-	e. `advancedTracer`: implements all the advanced features in book 2.
+	e. `theNextWeekUnrolled`: parallelize the supersampling loop
+	d. `trace`: contains the code for prettier pictures on raytracing -- currently
+		doesn't use unrolled supersampling or trees.
 5. Each CUDA executable is backed by a directory. They have the following structure:
 	a. `materials` is a directory of classes that extend `material`
 	b. `objects` is a directory of classes that can be collided with, though they 
@@ -39,24 +34,24 @@ the switch statement for camera angle must also be changed to match the scene.
 
 ## ==============WORK DONE==============
 ### Work that is entirely our own:
-1. Benchmarking the various implementations
+1. Benchmarking the various implementations (Elliot)
 2. The differences between `cuda/theNextWeek/tree` and `cuda/theNextWeek/smarter-trees`.
-These optimizations were surprisingly difficult, despite being simple.
+These optimizations were surprisingly difficult, despite being simple. (Elliot)
+3. `cuda/theNextWeek/unrolled-supersampling`. Implemented by Eric (Spencer)
 
 ### Work that is a mix of our own and other sources:
 1. `cuda/inOneWeekend`. The first four sections (in the `/sections` subdirectory) is
 almost entirely directly copy-pasted from the NVIDIA blog. Everything else was C++ in the
-"Ray Tracing in One Weekend" book, which we CUDA-ified and debugged.
+"Ray Tracing in One Weekend" book, which we CUDA-ified and debugged. (Elliot)
 2. `cuda/inOneWeekendFloats`. The NVIDIA blog suggested using mixed precision would be
-slower. They were right.
+slower. They were right. (Elliot)
 3. `cuda/theNextWeek/tree`. The C++ book provided the guidelines for implementing the
 tree, but the majority of C++ operations did not have good analogs within CUDA
 (this is partly because we chose to use pointer arrays rather than a CUDA vector analog).
 Therefore, the construction of the trees is mostly our own. We used a sorting algorithm
-from GeeksForGeeks in here as well.  
-4. `cuda/advancedTracer`. Adapted from Peter Shirley's 'The next week' with extensive changes
-for CUDA. Also added
-bump mapping and additional textures which are not in the book.
+from GeeksForGeeks in here as well. (Elliot)
+4. `cuda/advancedTracer`. This worked off of Book 2 ("The Next Week"). It was implemented
+by Boxian and Erik.
 
 ### Work that is entirely borrowed
 1. The entire cpp directory
@@ -79,8 +74,7 @@ We slightly modified an insertion sort algorithm from GeeksForGeeks for use in t
 tree-based CUDA program.
 https://www.geeksforgeeks.org/insertion-sort/
 
-### BUMP MAPPING
-Math from http://web.cse.ohio-state.edu/~shen.94/781/Site/Slides_files/bump.pdf
+### K-MEANS (TODO)
 
 ## ============PRESENTATION============
 https://docs.google.com/presentation/d/1PKAS5HJpFJFtKRe6GA9VrKXgAXtUfojzbELVClpj-rg/edit?usp=sharing
@@ -119,3 +113,5 @@ Larger scene: 0.597435 seconds
 ### CUDA (using unrolled supersampling)
 0.177274 seconds (Another 2x improvement!)
 Larger scene: 0.280259 seconds
+
+
