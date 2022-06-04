@@ -33,11 +33,20 @@
 
 
 ## ==============WORK DONE==============
+### THE TLDR OF WHO DID WHAT
+Elliot: implemented Book 1, acceleration structures in Book 2, benchmarking 
+Boxian: implemented Book 2, bump mapping
+Spencer (Eric): implemented noise functions `cuda/theNextWeekRest/texture/fBm.cuh`, 
+worked on acceleration schemes with Elliot (particularly parallelizing supersampling and
+caching bvh trees (a dead end)).
+We met almost every day of the week to try to crush some nasty bugs.
+
+### THE POINT-BY-POINT BREAKDOWN
 ### Work that is entirely our own:
 1. Benchmarking the various implementations (Elliot)
 2. The differences between `cuda/theNextWeek/tree` and `cuda/theNextWeek/smarter-trees`.
 These optimizations were surprisingly difficult, despite being simple. (Elliot)
-3. `cuda/theNextWeek/unrolled-supersampling`. Implemented by Eric (Spencer)
+3. `cuda/theNextWeek/unrolled-supersampling`. Implemented by Spencer (Eric)
 
 ### Work that is a mix of our own and other sources:
 1. `cuda/inOneWeekend`. The first four sections (in the `/sections` subdirectory) is
@@ -50,8 +59,7 @@ tree, but the majority of C++ operations did not have good analogs within CUDA
 (this is partly because we chose to use pointer arrays rather than a CUDA vector analog).
 Therefore, the construction of the trees is mostly our own. We used a sorting algorithm
 from GeeksForGeeks in here as well. (Elliot)
-4. `cuda/advancedTracer`. This worked off of Book 2 ("The Next Week"). It was implemented
-by Boxian and Erik.
+4. `cuda/advancedTracer`. This worked off of Book 2 ("The Next Week").
 
 ### Work that is entirely borrowed
 1. The entire cpp directory
