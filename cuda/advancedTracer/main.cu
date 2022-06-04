@@ -546,7 +546,7 @@ int main() {
   hittable **d_world;
   camera **d_cam;
 
-  checkCudaErrors(cudaMalloc((void **)&d_list, 500*sizeof(hittable *)));
+  checkCudaErrors(cudaMalloc((void **)&d_list, 1500*sizeof(hittable *)));
   checkCudaErrors(cudaDeviceSynchronize());
   checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(hittable *)));
   checkCudaErrors(cudaDeviceSynchronize());
