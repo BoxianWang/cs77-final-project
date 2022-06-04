@@ -2,6 +2,13 @@
 ## Elliot Potter, Boxian Wang, Eric (Spencer) Warezak
 ## CUDA/C++ ray tracer
 
+## BUILDING AND RUNNING
+
+To build the ray tracer with all advanced features from Book 1 and 2, in `cuda/cmake-build-debug`, run `cmake ..`. Then `make trace`.
+This produces an exectuable `trace` which can be run via `./trace > out.ppm` to output a scene. 
+Note that scene must be manually selected by changing the switch statement in `main.cu` and re-compiled. Note that
+the switch statement for camera angle must also be changed to match the scene.
+
 ## ===========CODE STRUCTURE============
 1. All CUDA code is in the `/cuda` directory.
 2. All C++ code is in the `cpp` directory
@@ -12,6 +19,7 @@
 	c. `inOneWeekendTree`: implements motion blur and tree-based object collisions
 	d. `inOneWeekendSmarterTree`: the same thing, except the tree builder attempts
 		to minimize the volume of each layer of the tree.
+	e. `advancedTracer`: implements all the advanced features in book 2.
 5. Each CUDA executable is backed by a directory. They have the following structure:
 	a. `materials` is a directory of classes that extend `material`
 	b. `objects` is a directory of classes that can be collided with, though they 
@@ -46,6 +54,8 @@ tree, but the majority of C++ operations did not have good analogs within CUDA
 (this is partly because we chose to use pointer arrays rather than a CUDA vector analog).
 Therefore, the construction of the trees is mostly our own. We used a sorting algorithm
 from GeeksForGeeks in here as well.  
+4. `cuda/advancedTracer`. Adapter from Peter Shirley's 'The next week' for CUDA. Also added
+bump mapping and additional textures which are not in the book.
 
 ### Work that is entirely borrowed
 1. The entire cpp directory
@@ -68,7 +78,8 @@ We slightly modified an insertion sort algorithm from GeeksForGeeks for use in t
 tree-based CUDA program.
 https://www.geeksforgeeks.org/insertion-sort/
 
-### K-MEANS (TODO)
+### BUMP MAPPING
+Math from http://web.cse.ohio-state.edu/~shen.94/781/Site/Slides_files/bump.pdf
 
 ## ============PRESENTATION============
 https://docs.google.com/presentation/d/1PKAS5HJpFJFtKRe6GA9VrKXgAXtUfojzbELVClpj-rg/edit?usp=sharing
