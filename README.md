@@ -82,7 +82,21 @@ We slightly modified an insertion sort algorithm from GeeksForGeeks for use in t
 tree-based CUDA program.
 https://www.geeksforgeeks.org/insertion-sort/
 
-### K-MEANS (TODO)
+## ============DEAD ENDS==============
+### k-means
+Spencer worked on this -- we thought about using k-means to cluster objects, but found
+the algorithm was ill-suited to the task of clustering objects with finite volume.
+
+### caching trees
+Spencer and Elliot worked on this -- we thought that storing the nodes of the object tree
+on a backing array would improve fetch speeds of the data by improving locality of
+bvh_nodes. We successfully implemented this, but only saw minor speed improvements (less
+than 5%), so we didn't include it in the final executables. 
+
+### unrolling tree traversal
+Elliot worked on this, it was Boxian's idea -- we thought managing our own stack and 
+traversing a tree without recursion would improve speed. We only implemented it part-way,
+but initial results showed that any speed improvements would be very minor.
 
 ## ============PRESENTATION============
 https://docs.google.com/presentation/d/1PKAS5HJpFJFtKRe6GA9VrKXgAXtUfojzbELVClpj-rg/edit?usp=sharing
