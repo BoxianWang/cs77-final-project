@@ -273,7 +273,6 @@ __global__ void random_world(hittable **d_list, hittable **d_world, curandState 
   }
 }
 
-/**
 __global__ void final_scene(hittable **d_list, hittable **d_world, curandState *rand_state, int height, int width) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
     int sphereNum = 0;
@@ -299,52 +298,50 @@ __global__ void final_scene(hittable **d_list, hittable **d_world, curandState *
     }
 
     d_list[sphereNum++] = new bvh_node(boxes1, 0, boxNum, 0, 0, rand_state);
-//    auto light = new diffuse_light(color(7, 7, 7));
-//    d_list[sphereNum++] =(new xz_rect(123, 423, 147, 412, 554, light));
-//    printf("In middle1\n");
-//
-//    auto center1 = point3(400, 400, 200);
-//    auto center2 = center1 + vec3(30,0,0);
-//    auto moving_sphere_material = new lambertian(color(0.7, 0.3, 0.1));
-//    d_list[sphereNum++] =(new moving_sphere(center1, center2, 0, 1, 50, moving_sphere_material));
-//    printf("In middle2\n");
-//
-//    d_list[sphereNum++] =(new sphere(point3(260, 150, 45), 50, new dielectric(1.5)));
-//    d_list[sphereNum++] =(new sphere(
-//        point3(0, 150, 145), 50, new metal(color(0.8, 0.8, 0.9), 1.0)
-//    ));
-//
-//    auto boundary = new sphere(point3(360,150,145), 70, new dielectric(1.5));
-//    d_list[sphereNum++] =(boundary);
-//    d_list[sphereNum++] =(new constant_medium(rand_state, boundary, 0.2, color(0.2, 0.4, 0.9)));
-//    boundary = new sphere(point3(0, 0, 0), 5000, new dielectric(1.5));
-//    d_list[sphereNum++] =(new constant_medium(rand_state, boundary, .0001, color(1,1,1)));
-//
-//
-//    auto emat = new lambertian( new image_texture(width, height));
-//    d_list[sphereNum++] =(new sphere(point3(400,200,400), 100, emat));
-//    auto pertext = new noise_texture(0.1, rand_state);
-//    d_list[sphereNum++] =(new sphere(point3(220,280,300), 80, new lambertian(pertext)));
-    printf("To end\n");
+    auto light = new diffuse_light(color(7, 7, 7));
+    d_list[sphereNum++] =(new xz_rect(123, 423, 147, 412, 554, light));
+    printf("In middle1\n");
 
-//    auto boxes2 = new hittable*[1000];
-//    int smallSphereNum=0;
-//    auto white = new lambertian(color(.73, .73, .73));
-//    int ns = 1000;
-//    for (int j = 0; j < ns; j++) {
-//        boxes2[smallSphereNum++] =(new sphere(vec3_random(rand_state, 0,165), 10, white));
-//    }
-//
-//    // create a new bvh_node and rotate it
-//    d_list[sphereNum++] = new translate(new rotate_y(
-//        new bvh_node(boxes2, 0, smallSphereNum, 0, 0, rand_state),
-//        15),
-//        vec3(-100,270,395)
-//      );
-//    *d_world = new hittable_list(d_list, sphereNum, rand_state);
+    auto center1 = point3(400, 400, 200);
+    auto center2 = center1 + vec3(30,0,0);
+    auto moving_sphere_material = new lambertian(color(0.7, 0.3, 0.1));
+    d_list[sphereNum++] =(new moving_sphere(center1, center2, 0, 1, 50, moving_sphere_material));
+    printf("In middle2\n");
+
+    d_list[sphereNum++] =(new sphere(point3(260, 150, 45), 50, new dielectric(1.5)));
+    d_list[sphereNum++] =(new sphere(
+        point3(0, 150, 145), 50, new metal(color(0.8, 0.8, 0.9), 1.0)
+    ));
+
+    auto boundary = new sphere(point3(360,150,145), 70, new dielectric(1.5));
+    d_list[sphereNum++] =(boundary);
+    d_list[sphereNum++] =(new constant_medium(rand_state, boundary, 0.2, color(0.2, 0.4, 0.9)));
+    boundary = new sphere(point3(0, 0, 0), 5000, new dielectric(1.5));
+    d_list[sphereNum++] =(new constant_medium(rand_state, boundary, .0001, color(1,1,1)));
+
+
+    auto emat = new lambertian( new image_texture(width, height));
+    d_list[sphereNum++] =(new sphere(point3(400,200,400), 100, emat));
+    auto pertext = new noise_texture(0.1, rand_state);
+    d_list[sphereNum++] =(new sphere(point3(220,280,300), 80, new lambertian(pertext)));
+    auto boxes2 = new hittable*[1000];
+    int smallSphereNum=0;
+    auto white = new lambertian(color(.73, .73, .73));
+    int ns = 1000;
+    for (int j = 0; j < ns; j++) {
+        boxes2[smallSphereNum++] =(new sphere(vec3_random(rand_state, 0,165), 10, white));
+    }
+
+    // create a new bvh_node and rotate it
+    d_list[sphereNum++] = new translate(new rotate_y(
+        new bvh_node(boxes2, 0, smallSphereNum, 0, 0, rand_state),
+        15),
+        vec3(-100,270,395)
+      );
+    *d_world = new hittable_list(d_list, sphereNum, rand_state);
   }
 }
- */
+
 
 // cleans up the world
 __global__ void free_world(hittable **d_list, hittable **d_world) {
@@ -599,7 +596,8 @@ int main() {
 
 
   // choose a scene
-  int sceneNum = 7;
+  // NOTE -- 8 doesn't work yet!
+  int sceneNum = 6;
   switch (sceneNum)
   {
   case 0:
@@ -651,13 +649,13 @@ int main() {
     background = color(0.70, 0.80, 1.00);
     num_samples = 200;
     break;
-//  case 8:
-//    // final scene (work in progress)
-//    prepare_texture(&height, &width, "../earthmap.jpg");
-//    final_scene<<<1,1>>>(d_list, d_world, d_rand_state, height, width);
-//    background = color(0.70, 0.80, 1.00);
-//    num_samples = 1;
-//    break;
+  case 8:
+    // final scene (work in progress)
+    prepare_texture(&height, &width, "../earthmap.jpg");
+    final_scene<<<1,1>>>(d_list, d_world, d_rand_state, height, width);
+    background = color(0.70, 0.80, 1.00);
+    num_samples = 1;
+    break;
   }
 checkCudaErrors(cudaGetLastError());
 checkCudaErrors(cudaDeviceSynchronize());

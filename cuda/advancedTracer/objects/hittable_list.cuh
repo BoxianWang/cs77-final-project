@@ -15,7 +15,7 @@ class hittable_list : public hittable {
     __device__ hittable_list(hittable** objs, int numObjects, curandState *rand_state,  float time0=0, float time1=0) {
       objects = objs;
       objectNumber = numObjects;
-      node = new bvh_node(objs, 0, numObjects, time0, time1, rand_state);
+//      node = new bvh_node(objs, 0, numObjects, time0, time1, rand_state);
 //      node->print(0);
     }
 
