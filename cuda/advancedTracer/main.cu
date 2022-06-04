@@ -277,7 +277,7 @@ __global__ void final_scene(hittable **d_list, hittable **d_world, curandState *
     int sphereNum = 0;
     auto ground = new lambertian(color(0.48, 0.83, 0.53));
 
-    const int boxes_per_side = 2;
+    const int boxes_per_side = 20;
     for (int i = 0; i < boxes_per_side; i++) {
         for (int j = 0; j < boxes_per_side; j++) {
             auto w = 100.0;
@@ -320,7 +320,7 @@ __global__ void final_scene(hittable **d_list, hittable **d_world, curandState *
     d_list[sphereNum++] =(new sphere(point3(220,280,300), 80, new lambertian(pertext)));
 
     auto white = new lambertian(color(.73, .73, .73));
-    int ns = 10;
+    int ns = 1000;
     for (int j = 0; j < ns; j++) {
         d_list[sphereNum++] =(new sphere(vec3_random(rand_state, 0,165), 10, white));
     }
@@ -609,7 +609,7 @@ int main() {
     prepare_texture(&height, &width, "../earthmap.jpg");
     final_scene<<<1,1>>>(d_list, d_world, d_rand_state, height, width);
     background = color(0.70, 0.80, 1.00);
-    num_samples = 100;
+    num_samples = 400;
     break;
   }
 checkCudaErrors(cudaGetLastError());
