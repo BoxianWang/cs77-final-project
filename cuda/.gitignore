@@ -13,3 +13,4 @@ cuda.cbp
 cuda
 CMakeFiles
 CMakeCache.txt
+cmake-build-debug/*
