@@ -7,27 +7,44 @@
 2. All C++ code is in the `cpp` directory
 3. Compilation instructions for cuda can be found in the README of the `/cuda` directory.
 4. CUDA executables are built into the `cuda/cmake-build-debug` directory
+	
 	a. `inOneWeekend`: basic rendering of the final scene of the first book
+	
 	b. `inOneWeekendFloat`: the same thing, at 1/3 the time
+	
 	c. `theNextWeekTree`: implements motion blur and tree-based object collisions
+	
 	d. `theNextWeekSmarterTree`: the same thing, except the tree builder attempts
 		to minimize the volume of each layer of the tree.
+	
 	e. `theNextWeekUnrolled`: parallelize the supersampling loop
-	d. `trace`: contains the code for prettier pictures on raytracing -- currently
+	
+	f. `trace`: contains the code for prettier pictures on raytracing -- currently
 		doesn't use unrolled supersampling or trees.
 5. Each CUDA executable is backed by a directory. They have the following structure:
+	
 	a. `materials` is a directory of classes that extend `material`
+	
 	b. `objects` is a directory of classes that can be collided with, though they 
 		don't all extend "hittable"
+	
 	c. a `camera` class
+	
 	d. a `randoms` class
+	
 	e. a `ray` class
-	d. main, which contains:
+	
+	f. main, which contains:
+	
 		i. Error handling functions
+	
 		ii. Functions to create and delete the world (in some cases creating
 			the tree that backs the world)
+	
 		iii. Functions to create and delete the camera
+	
 		iv. Functions to actually manage tracing the ray
+	
 		v. The main function, which allocates memory and manages all the GPU-CPU
 			interactions
 
@@ -35,10 +52,13 @@
 ## ==============WORK DONE==============
 ### THE TLDR OF WHO DID WHAT
 Elliot: implemented Book 1, acceleration structures in Book 2, benchmarking 
+
 Boxian: implemented Book 2, bump mapping
+
 Spencer (Eric): implemented noise functions `cuda/theNextWeekRest/texture/fBm.cuh`, 
 worked on acceleration schemes with Elliot (particularly parallelizing supersampling and
 caching bvh trees (a dead end)).
+
 We met almost every day of the week to try to crush some nasty bugs.
 
 ### THE POINT-BY-POINT BREAKDOWN
