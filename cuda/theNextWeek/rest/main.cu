@@ -26,9 +26,6 @@
 #include "materials/diffuse.cuh"
 #include "objects/constant_medium.cuh"
 
-
-
-
 // prints out any cuda errors that occur
 void check_cuda(cudaError_t result, const char *const func, const char *const file, const int line) {
   if (result) {
@@ -42,14 +39,26 @@ void check_cuda(cudaError_t result, const char *const func, const char *const fi
   }
 }
 
-__global__ void two_perlin_spheres(hittable **d_list, hittable **d_world, curandState *rand_state) {
+int get_texture()
+{
+  int t;
+  std::cerr << "Enter an integers between 0 and 9: ";
+  std::cin >> t;
+  std::cerr << "\n";
+
+  return t;
+}
+
+__global__ void two_perlin_spheres(hittable **d_list, hittable **d_world, curandState *rand_state, int t1, int t2) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
-    auto pertext = new noise_texture(4, rand_state);
-    auto mat = new lambertian(pertext);
+    auto pertext = new noise_texture(4, rand_state, t1);
+    auto pertext2 = new noise_texture(4, rand_state, t2);
+    auto mat1 = new lambertian(pertext);
+    auto mat2 = new lambertian(pertext2);
 
     int sphereNum = 0;
-    d_list[sphereNum++] = new sphere(point3(0,-1000,0), 1000, mat);
-    d_list[sphereNum++] = new sphere(point3(0, 2, 0), 2, mat);
+    d_list[sphereNum++] = new sphere(point3(0,-1000,0), 1000, mat1);
+    d_list[sphereNum++] = new sphere(point3(0, 2, 0), 2, mat2);
 
     *d_world = new hittable_list(d_list, sphereNum, rand_state);
   }
@@ -219,7 +228,7 @@ __global__ void create_camera(camera **d_cam) {
   if (threadIdx.x == 0 && blockIdx.x == 0) {
     vec3 origin, lookAt, vup;
     float vFov, aspectRatio, aperture, dist_to_focus;
-    switch (4)
+    switch (0)
     {
     case 0:
     // perlin
@@ -232,7 +241,6 @@ __global__ void create_camera(camera **d_cam) {
       dist_to_focus = 10;
       break;
     
-    default:
     case 1:
     // random
       origin = point3(13, 2, 3);
@@ -367,13 +375,12 @@ __global__ void render(
 int main() {
   // Image
   float aspect_ratio;
-  switch (1)
+  switch (0)
   {
   case 0:
     aspect_ratio = 3.0/2.0;
     break;
   
-  default:
   // cornell
   case 1:
     aspect_ratio = 1.0;
@@ -425,16 +432,19 @@ int main() {
   checkCudaErrors(cudaMalloc((void **)&d_world, sizeof(hittable *)));
   checkCudaErrors(cudaDeviceSynchronize());
 
-
+  std::cerr << "Choosing a scene...\n";
   // choose a scene
-  switch (5)
+  switch (0)
   {
   case 0:
-    two_perlin_spheres<<<1,1>>>(d_list, d_world, d_rand_state);
+    std::cerr << "Getting textures...\n";
+    int t1, t2;
+    t1 = get_texture(); t2 = get_texture();
+
+    two_perlin_spheres<<<1,1>>>(d_list, d_world, d_rand_state, t1, t2);
     background = color(0.70, 0.80, 1.00);
     break;
   
-  default:
   case 1:
       // generate the world
     random_world<<<1,1>>>(d_list, d_world, d_rand_state);
