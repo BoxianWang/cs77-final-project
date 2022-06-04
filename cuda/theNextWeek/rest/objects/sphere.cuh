@@ -2,8 +2,8 @@
 // Created by smooth_operator on 5/17/22.
 //
 
-#ifndef CUDA_SPHERE_CUH
-#define CUDA_SPHERE_CUH
+#ifndef CUDA_BUMPYSPHERE_CUH
+#define CUDA_BUMPYSPHERE_CUH
 
 #include "hittable.cuh"
 #include "../vec3.cuh"
@@ -79,6 +79,5 @@ __device__ bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& 
   get_sphere_uv(outward_normal, rec.u, rec.v);
   return true;
 }
-
 
 #endif //CUDA_SPHERE_CUH
