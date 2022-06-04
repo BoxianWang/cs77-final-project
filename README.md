@@ -54,7 +54,8 @@ tree, but the majority of C++ operations did not have good analogs within CUDA
 (this is partly because we chose to use pointer arrays rather than a CUDA vector analog).
 Therefore, the construction of the trees is mostly our own. We used a sorting algorithm
 from GeeksForGeeks in here as well.  
-4. `cuda/advancedTracer`. Adapter from Peter Shirley's 'The next week' for CUDA. Also added
+4. `cuda/advancedTracer`. Adapted from Peter Shirley's 'The next week' with extensive changes
+for CUDA. Also added
 bump mapping and additional textures which are not in the book.
 
 ### Work that is entirely borrowed
