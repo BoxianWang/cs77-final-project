@@ -1,4 +1,4 @@
-# GROUP 7
+\# GROUP 7
 ## Elliot Potter, Boxian Wang, Eric (Spencer) Warezak
 ## CUDA/C++ ray tracer
 
@@ -79,7 +79,8 @@ tree, but the majority of C++ operations did not have good analogs within CUDA
 (this is partly because we chose to use pointer arrays rather than a CUDA vector analog).
 Therefore, the construction of the trees is mostly our own. We used a sorting algorithm
 from GeeksForGeeks in here as well. (Elliot)
-4. `cuda/advancedTracer`. This worked off of Book 2 ("The Next Week").
+4. The `aabb` vectorization was based on this source: https://medium.com/@bromanz/another-view-on-the-classic-ray-aabb-intersection-algorithm-for-bvh-traversal-41125138b525 (Spencer)
+5. `cuda/advancedTracer`. This worked off of Book 2 ("The Next Week"). (Boxian)
 
 ### Work that is entirely borrowed
 1. The entire cpp directory
